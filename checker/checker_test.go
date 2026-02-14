@@ -9,8 +9,11 @@ import (
 	"testing"
 	"time"
 
+<<<<<<< HEAD
 	"github.com/apernet/hysteria/extras/v2/obfs"
 	"github.com/apernet/hysteria/extras/v2/transport/udphop"
+=======
+>>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 	"github.com/belaytzev/hysteria-checker/models"
 )
 
@@ -130,6 +133,7 @@ func TestCheckViaProxy_InvalidURL(t *testing.T) {
 	}
 }
 
+<<<<<<< HEAD
 func TestCheckViaProxy_UnsupportedScheme(t *testing.T) {
 	mc := &mockProxyClient{}
 
@@ -145,6 +149,8 @@ func TestCheckViaProxy_UnsupportedScheme(t *testing.T) {
 	}
 }
 
+=======
+>>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 func TestCheckViaProxy_DefaultPorts(t *testing.T) {
 	tests := []struct {
 		url          string
@@ -173,6 +179,7 @@ func TestCheckViaProxy_DefaultPorts(t *testing.T) {
 	}
 }
 
+<<<<<<< HEAD
 func TestIsPlainPort(t *testing.T) {
 	tests := []struct {
 		input string
@@ -248,6 +255,8 @@ func TestPortHopConnFactory_New_WithObfs(t *testing.T) {
 	}
 }
 
+=======
+>>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 func TestNormalizeCertHash(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -283,6 +292,7 @@ func TestHysteria2Connector_InvalidServer(t *testing.T) {
 	}
 }
 
+<<<<<<< HEAD
 func TestHysteria2Connector_PortHoppingAddress(t *testing.T) {
 	// Verify that Connect() with a port-hopping server address fails at the
 	// network level (client.NewClient), not at address parsing. This confirms
@@ -331,6 +341,8 @@ func TestHysteria2Connector_HopAddressResolutionFailure(t *testing.T) {
 	}
 }
 
+=======
+>>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 func TestConnectorInterface(t *testing.T) {
 	// Verify Hysteria2Connector implements Connector
 	var _ Connector = &Hysteria2Connector{}

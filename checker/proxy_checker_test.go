@@ -1,7 +1,10 @@
 package checker
 
 import (
+<<<<<<< HEAD
 	"context"
+=======
+>>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 	"fmt"
 	"net"
 	"net/http"
@@ -93,7 +96,11 @@ func TestCheckAll_DispatchesV1AndV2(t *testing.T) {
 	}
 
 	pc := NewProxyChecker(proxies, v1Conn, v2Conn, ts.URL, 10*time.Second)
+<<<<<<< HEAD
 	pc.CheckAll(context.Background())
+=======
+	pc.CheckAll()
+>>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 
 	if v1Calls.Load() != 1 {
 		t.Errorf("expected 1 v1 connect call, got %d", v1Calls.Load())
@@ -134,7 +141,11 @@ func TestCheckAll_ConnectFailure(t *testing.T) {
 	}
 
 	pc := NewProxyChecker(proxies, nil, failConnector, "http://example.com", 10*time.Second)
+<<<<<<< HEAD
 	pc.CheckAll(context.Background())
+=======
+	pc.CheckAll()
+>>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 
 	results := pc.Results()
 	r := results[proxies[0].StableID]
@@ -152,7 +163,11 @@ func TestCheckAll_UnsupportedVersion(t *testing.T) {
 	}
 
 	pc := NewProxyChecker(proxies, nil, nil, "http://example.com", 10*time.Second)
+<<<<<<< HEAD
 	pc.CheckAll(context.Background())
+=======
+	pc.CheckAll()
+>>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 
 	results := pc.Results()
 	r := results[proxies[0].StableID]
@@ -170,7 +185,11 @@ func TestCheckAll_NilConnector(t *testing.T) {
 	}
 
 	pc := NewProxyChecker(proxies, nil, nil, "http://example.com", 10*time.Second)
+<<<<<<< HEAD
 	pc.CheckAll(context.Background())
+=======
+	pc.CheckAll()
+>>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 
 	results := pc.Results()
 	r := results[proxies[0].StableID]
@@ -211,7 +230,11 @@ func TestCheckAll_ConcurrencyLimit(t *testing.T) {
 	pc := NewProxyChecker(proxies, nil, slowConnector, "http://example.com", 10*time.Second,
 		WithConcurrency(3),
 	)
+<<<<<<< HEAD
 	pc.CheckAll(context.Background())
+=======
+	pc.CheckAll()
+>>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 
 	if maxConcurrent.Load() > 3 {
 		t.Errorf("expected max concurrency <= 3, got %d", maxConcurrent.Load())
@@ -231,7 +254,11 @@ func TestUpdateProxies_RemovesStaleResults(t *testing.T) {
 	}
 
 	pc := NewProxyChecker(proxies, nil, failConnector, "http://example.com", 10*time.Second)
+<<<<<<< HEAD
 	pc.CheckAll(context.Background())
+=======
+	pc.CheckAll()
+>>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 
 	if len(pc.Results()) != 2 {
 		t.Fatalf("expected 2 results, got %d", len(pc.Results()))
@@ -282,7 +309,11 @@ func TestResults_ReturnsCopy(t *testing.T) {
 	}
 
 	pc := NewProxyChecker(proxies, nil, failConnector, "http://example.com", 10*time.Second)
+<<<<<<< HEAD
 	pc.CheckAll(context.Background())
+=======
+	pc.CheckAll()
+>>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 
 	r1 := pc.Results()
 	r1[proxies[0].StableID] = CheckResult{Alive: true}
@@ -295,7 +326,11 @@ func TestResults_ReturnsCopy(t *testing.T) {
 
 func TestCheckAll_EmptyProxies(t *testing.T) {
 	pc := NewProxyChecker(nil, nil, nil, "http://example.com", 10*time.Second)
+<<<<<<< HEAD
 	pc.CheckAll(context.Background()) // should not panic
+=======
+	pc.CheckAll() // should not panic
+>>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 	if len(pc.Results()) != 0 {
 		t.Error("expected empty results for empty proxy list")
 	}

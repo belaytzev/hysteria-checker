@@ -82,6 +82,7 @@ func (c *Hysteria1Connector) Connect(cfg models.ProxyConfig) (ProxyClient, error
 	socksAddr := listener.Addr().String()
 	_ = listener.Close()
 
+<<<<<<< HEAD
 	// Build the config — hysteria v1 requires positive bandwidth values
 	upMbps := cfg.UpMbps
 	if upMbps <= 0 {
@@ -95,6 +96,13 @@ func (c *Hysteria1Connector) Connect(cfg models.ProxyConfig) (ProxyClient, error
 		Server:   cfg.Server,
 		UpMbps:   upMbps,
 		DownMbps: downMbps,
+=======
+	// Build the config
+	hyCfg := hysteria1Config{
+		Server:   cfg.Server,
+		UpMbps:   cfg.UpMbps,
+		DownMbps: cfg.DownMbps,
+>>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 		Auth:     cfg.Auth,
 		SOCKS5:   hysteria1Socks5{Listen: socksAddr},
 	}
