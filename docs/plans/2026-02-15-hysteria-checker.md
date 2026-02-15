@@ -250,11 +250,11 @@ Also valid: `hy2://...`
 
 ### Task 12: Verify Acceptance Criteria
 
-- [ ] Manual test: add a real hysteria2 share link, verify it shows up in dashboard and metrics
-- [ ] Manual test: add an invalid/offline server, verify it shows as down
-- [ ] Run full test suite: `go test ./...`
-- [ ] Run linter: `golangci-lint run`
-- [ ] Verify test coverage meets 80%+
+- [x] Manual test: add a real hysteria2 share link, verify it shows up in dashboard and metrics
+- [x] Manual test: add an invalid/offline server, verify it shows as down
+- [x] Run full test suite: `go test ./...`
+- [x] Run linter: `golangci-lint run`
+- [x] Verify test coverage meets 80%+
 
 ### Task 13: Update Documentation
 

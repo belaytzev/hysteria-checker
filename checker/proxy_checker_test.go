@@ -333,3 +333,23 @@ func TestDetectHostIP_ServerDown(t *testing.T) {
 		t.Fatal("expected error when server is down")
 	}
 }
+
+func TestSetTestResults(t *testing.T) {
+	proxies := []models.ProxyConfig{
+		makeProxy(2, "proxy", "host:443", "auth"),
+	}
+	pc := NewProxyChecker(proxies, nil, nil, "http://example.com", 10*time.Second)
+
+	pc.SetTestResults(map[string]CheckResult{
+		proxies[0].StableID: {Alive: true, Latency: 42 * time.Millisecond},
+	})
+
+	results := pc.Results()
+	r, ok := results[proxies[0].StableID]
+	if !ok {
+		t.Fatal("expected result to be set")
+	}
+	if !r.Alive || r.Latency != 42*time.Millisecond {
+		t.Errorf("unexpected result: %+v", r)
+	}
+}

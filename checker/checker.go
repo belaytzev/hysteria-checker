@@ -170,7 +170,7 @@ func (pc *ProxyChecker) checkOne(proxy models.ProxyConfig) CheckResult {
 			Error:     fmt.Sprintf("connect failed: %v", err),
 		}
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	alive, latency, err := CheckViaProxy(client, pc.checkURL, pc.timeout)
 	result := CheckResult{
@@ -194,7 +194,7 @@ func DetectHostIP(checkURL string, timeout time.Duration) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to detect host IP: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

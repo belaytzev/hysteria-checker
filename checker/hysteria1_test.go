@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -48,6 +49,33 @@ func TestHysteria1Client_Close_NilProcess(t *testing.T) {
 	err := client.Close()
 	if err != nil {
 		t.Errorf("Close() returned error: %v", err)
+	}
+}
+
+func TestHysteria1Client_TCP_Error(t *testing.T) {
+	client := &hysteria1Client{socksAddr: "127.0.0.1:1"}
+	_, err := client.TCP("example.com:80")
+	if err == nil {
+		t.Fatal("expected error when SOCKS5 proxy is not reachable")
+	}
+}
+
+func TestHysteria1Client_Close_WithTmpFile(t *testing.T) {
+	tmpFile, err := os.CreateTemp("", "hy1-test-*.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmpName := tmpFile.Name()
+	_ = tmpFile.Close()
+
+	client := &hysteria1Client{tmpFile: tmpName}
+	if err := client.Close(); err != nil {
+		t.Errorf("Close() returned error: %v", err)
+	}
+
+	// Verify file was removed
+	if _, err := os.Stat(tmpName); !os.IsNotExist(err) {
+		t.Errorf("expected temp file to be removed, but it still exists")
 	}
 }
 

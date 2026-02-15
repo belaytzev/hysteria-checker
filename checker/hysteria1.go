@@ -84,7 +84,7 @@ func (c *Hysteria1Connector) Connect(cfg models.ProxyConfig) (ProxyClient, error
 		return nil, fmt.Errorf("failed to find free port: %w", err)
 	}
 	socksAddr := listener.Addr().String()
-	listener.Close()
+	_ = listener.Close()
 
 	// Build the config
 	hyCfg := hysteria1Config{
@@ -117,26 +117,26 @@ func (c *Hysteria1Connector) Connect(cfg models.ProxyConfig) (ProxyClient, error
 		return nil, fmt.Errorf("failed to create temp config: %w", err)
 	}
 	if err := json.NewEncoder(tmpFile).Encode(hyCfg); err != nil {
-		tmpFile.Close()
-		os.Remove(tmpFile.Name())
+		_ = tmpFile.Close()
+		_ = os.Remove(tmpFile.Name())
 		return nil, fmt.Errorf("failed to write config: %w", err)
 	}
-	tmpFile.Close()
+	_ = tmpFile.Close()
 
 	// Start the hysteria v1 binary
 	cmd := exec.Command(binaryPath, "client", "--config", tmpFile.Name())
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 	if err := cmd.Start(); err != nil {
-		os.Remove(tmpFile.Name())
+		_ = os.Remove(tmpFile.Name())
 		return nil, fmt.Errorf("failed to start hysteria v1 binary: %w", err)
 	}
 
 	// Wait for the SOCKS5 proxy to become available
 	if err := waitForPort(socksAddr, 10*time.Second); err != nil {
-		cmd.Process.Kill()
-		cmd.Wait()
-		os.Remove(tmpFile.Name())
+		_ = cmd.Process.Kill()
+		_ = cmd.Wait()
+		_ = os.Remove(tmpFile.Name())
 		return nil, fmt.Errorf("hysteria v1 SOCKS5 proxy did not start: %w", err)
 	}
 
@@ -153,7 +153,7 @@ func waitForPort(addr string, timeout time.Duration) error {
 	for time.Now().Before(deadline) {
 		conn, err := net.DialTimeout("tcp", addr, 500*time.Millisecond)
 		if err == nil {
-			conn.Close()
+			_ = conn.Close()
 			return nil
 		}
 		time.Sleep(200 * time.Millisecond)
@@ -170,36 +170,36 @@ func dialViaSocks5(proxyAddr, target string, timeout time.Duration) (net.Conn, e
 	}
 
 	if err := conn.SetDeadline(time.Now().Add(timeout)); err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return nil, err
 	}
 
 	// Greeting: version 5, 1 auth method (no auth)
 	if _, err := conn.Write([]byte{0x05, 0x01, 0x00}); err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("SOCKS5 greeting write failed: %w", err)
 	}
 
 	// Read greeting response (2 bytes)
 	resp := make([]byte, 2)
 	if _, err := readFull(conn, resp); err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("SOCKS5 greeting read failed: %w", err)
 	}
 	if resp[0] != 0x05 || resp[1] != 0x00 {
-		conn.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("SOCKS5 auth not accepted: %x", resp)
 	}
 
 	// Parse target host:port
 	host, portStr, err := net.SplitHostPort(target)
 	if err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("invalid target address: %w", err)
 	}
 	port, err := net.LookupPort("tcp", portStr)
 	if err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("invalid port: %w", err)
 	}
 
@@ -215,18 +215,18 @@ func dialViaSocks5(proxyAddr, target string, timeout time.Duration) (net.Conn, e
 	req = append(req, byte(port>>8), byte(port&0xff))
 
 	if _, err := conn.Write(req); err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("SOCKS5 connect write failed: %w", err)
 	}
 
 	// Read response: at least 4 bytes for header, then address
 	header := make([]byte, 4)
 	if _, err := readFull(conn, header); err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("SOCKS5 connect response read failed: %w", err)
 	}
 	if header[1] != 0x00 {
-		conn.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("SOCKS5 connect failed with code: %d", header[1])
 	}
 
@@ -234,19 +234,19 @@ func dialViaSocks5(proxyAddr, target string, timeout time.Duration) (net.Conn, e
 	switch header[3] {
 	case 0x01: // IPv4
 		skip := make([]byte, 4+2)
-		readFull(conn, skip)
+		_, _ = readFull(conn, skip)
 	case 0x04: // IPv6
 		skip := make([]byte, 16+2)
-		readFull(conn, skip)
+		_, _ = readFull(conn, skip)
 	case 0x03: // Domain
 		lenBuf := make([]byte, 1)
-		readFull(conn, lenBuf)
+		_, _ = readFull(conn, lenBuf)
 		skip := make([]byte, int(lenBuf[0])+2)
-		readFull(conn, skip)
+		_, _ = readFull(conn, skip)
 	}
 
 	// Clear deadline for the caller to manage
-	conn.SetDeadline(time.Time{})
+	_ = conn.SetDeadline(time.Time{})
 
 	return conn, nil
 }

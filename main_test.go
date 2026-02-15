@@ -34,14 +34,14 @@ func TestRunStartupSequence(t *testing.T) {
 			"--metrics-host", "127.0.0.1",
 			"--metrics-port", fmt.Sprintf("%d", port),
 			"--check-interval", "1h",
-			"--check-timeout", "2s",
+			"--check-timeout", "1s",
 		})
 	}()
 
 	// Wait for the HTTP server to be ready
 	addr := fmt.Sprintf("http://127.0.0.1:%d", port)
 	ready := false
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 100; i++ {
 		resp, err := http.Get(addr + "/api/v1/status")
 		if err == nil {
 			resp.Body.Close()

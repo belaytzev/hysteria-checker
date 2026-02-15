@@ -137,7 +137,7 @@ func CheckViaProxy(pc ProxyClient, checkURL string, timeout time.Duration) (aliv
 	if err != nil {
 		return false, 0, fmt.Errorf("TCP connect failed: %w", err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	if err := conn.SetDeadline(time.Now().Add(timeout)); err != nil {
 		return false, 0, fmt.Errorf("failed to set deadline: %w", err)
@@ -155,7 +155,7 @@ func CheckViaProxy(pc ProxyClient, checkURL string, timeout time.Duration) (aliv
 	if err != nil {
 		return false, 0, fmt.Errorf("read response failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Read body (needed for IP check method; also ensures full round trip)
 	_, _ = io.ReadAll(resp.Body)
