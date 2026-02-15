@@ -176,14 +176,14 @@ Also valid: `hy2://...`
 **Files:**
 - Create: `metrics/metrics.go`
 
-- [ ] Define Prometheus gauges:
+- [x] Define Prometheus gauges:
   - `hysteria_proxy_status` (labels: `version`, `address`, `name`, `sub_name`) — 1=up, 0=down
   - `hysteria_proxy_latency_ms` (same labels) — latency in ms, 0 if down
-- [ ] Implement `UpdateMetrics(results map[string]CheckResult, proxies []ProxyConfig)`
-- [ ] Register metrics and expose via `promhttp.Handler()` at `/metrics`
-- [ ] Optional Basic Auth protection for `/metrics`
-- [ ] Write tests verifying metric values after updates
-- [ ] Run `go test ./...` — must pass before task 8
+- [x] Implement `UpdateMetrics(results map[string]CheckResult, proxies []ProxyConfig)`
+- [x] Register metrics and expose via `promhttp.Handler()` at `/metrics`
+- [x] Optional Basic Auth protection for `/metrics`
+- [x] Write tests verifying metric values after updates
+- [x] Run `go test ./...` — must pass before task 8
 
 ### Task 8: REST API
 
