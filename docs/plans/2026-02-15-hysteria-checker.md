@@ -140,12 +140,12 @@ Also valid: `hy2://...`
 **Files:**
 - Create: `checker/hysteria1.go`
 
-- [ ] Research hysteria v1 Go library availability (older `github.com/apernet/hysteria` module)
-- [ ] If v1 Go library is usable: implement `ConnectHysteria1(cfg ProxyConfig) (net.Conn, error)` similar to v2
-- [ ] If v1 Go library is not easily importable: implement v1 checking by shelling out to `hysteria` binary (v1) with a temp config file, starting a local SOCKS5 proxy, checking through it, then killing the process
-- [ ] Implement `CheckViaHysteria1(...)` with same IP/status check logic
-- [ ] Write tests
-- [ ] Run `go test ./...` — must pass before task 6
+- [x] Research hysteria v1 Go library availability (older `github.com/apernet/hysteria` module)
+- [x] If v1 Go library is usable: implement `ConnectHysteria1(cfg ProxyConfig) (net.Conn, error)` similar to v2
+- [x] If v1 Go library is not easily importable: implement v1 checking by shelling out to `hysteria` binary (v1) with a temp config file, starting a local SOCKS5 proxy, checking through it, then killing the process
+- [x] Implement `CheckViaHysteria1(...)` with same IP/status check logic
+- [x] Write tests
+- [x] Run `go test ./...` — must pass before task 6
 
 ### Task 6: Proxy Checker Orchestration
 
