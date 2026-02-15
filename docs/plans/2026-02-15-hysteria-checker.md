@@ -191,14 +191,14 @@ Also valid: `hy2://...`
 - Create: `web/api.go`
 - Create: `web/router.go`
 
-- [ ] Implement REST API endpoints:
+- [x] Implement REST API endpoints:
   - `GET /api/v1/proxies` — list all proxies with status, latency, version
   - `GET /api/v1/proxies/{id}` — single proxy by StableID
   - `GET /api/v1/status` — summary (total, up, down counts)
-- [ ] JSON response format
-- [ ] Optional Basic Auth
-- [ ] Write tests with httptest
-- [ ] Run `go test ./...` — must pass before task 9
+- [x] JSON response format
+- [x] Optional Basic Auth
+- [x] Write tests with httptest
+- [x] Run `go test ./...` — must pass before task 9
 
 ### Task 9: Web Dashboard
 

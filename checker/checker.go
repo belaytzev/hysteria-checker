@@ -96,6 +96,15 @@ func (pc *ProxyChecker) Results() map[string]CheckResult {
 	return out
 }
 
+// SetTestResults sets check results directly (for testing only).
+func (pc *ProxyChecker) SetTestResults(results map[string]CheckResult) {
+	pc.mu.Lock()
+	defer pc.mu.Unlock()
+	for k, v := range results {
+		pc.results[k] = v
+	}
+}
+
 // Proxies returns a copy of the current proxy list.
 func (pc *ProxyChecker) Proxies() []models.ProxyConfig {
 	pc.mu.RLock()
