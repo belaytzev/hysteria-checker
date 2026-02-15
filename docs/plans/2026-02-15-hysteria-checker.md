@@ -240,13 +240,13 @@ Also valid: `hy2://...`
 - Modify: `docker-compose.yml`
 - Create: `.dockerignore`
 
-- [ ] Finalize multi-stage Dockerfile:
+- [x] Finalize multi-stage Dockerfile:
   - Stage 1: `golang:1.24-alpine`, build with `-ldflags="-s -w"`, optionally UPX compress
   - Stage 2: `alpine`, install `ca-certificates` and `tzdata`, non-root user
-- [ ] Add health check in docker-compose (`curl localhost:2112/api/v1/status`)
-- [ ] Create `.dockerignore` (exclude `.git`, `docs/`, `*.md`)
-- [ ] Test Docker build locally
-- [ ] Run `go test ./...` — must pass before task 12
+- [x] Add health check in docker-compose (`curl localhost:2112/api/v1/status`)
+- [x] Create `.dockerignore` (exclude `.git`, `docs/`, `*.md`)
+- [x] Test Docker build locally
+- [x] Run `go test ./...` — must pass before task 12
 
 ### Task 12: Verify Acceptance Criteria
 
