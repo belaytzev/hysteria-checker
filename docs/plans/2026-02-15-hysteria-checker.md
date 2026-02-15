@@ -73,7 +73,7 @@ Also valid: `hy2://...`
 - Create: `parser/hysteria1.go`
 - Create: `parser/hysteria2.go`
 
-- [ ] Define `ProxyConfig` model struct:
+- [x] Define `ProxyConfig` model struct:
   ```
   type ProxyConfig struct {
       Version    int    // 1 or 2
@@ -92,12 +92,12 @@ Also valid: `hy2://...`
       StableID   string // deterministic hash for metrics labels
   }
   ```
-- [ ] Implement `hysteria://` URI parser (v1)
-- [ ] Implement `hysteria2://` and `hy2://` URI parser (v2)
-- [ ] Implement `ParseLinks(input string) ([]ProxyConfig, error)` — splits by newline, parses each link
-- [ ] Generate `StableID` as SHA256 hash of `server+auth+version` (for stable metric labels)
-- [ ] Write comprehensive tests: valid URIs, edge cases (missing port, special chars, percent-encoding), invalid URIs
-- [ ] Run `go test ./...` — must pass before task 3
+- [x] Implement `hysteria://` URI parser (v1)
+- [x] Implement `hysteria2://` and `hy2://` URI parser (v2)
+- [x] Implement `ParseLinks(input string) ([]ProxyConfig, error)` — splits by newline, parses each link
+- [x] Generate `StableID` as SHA256 hash of `server+auth+version` (for stable metric labels)
+- [x] Write comprehensive tests: valid URIs, edge cases (missing port, special chars, percent-encoding), invalid URIs
+- [x] Run `go test ./...` — must pass before task 3
 
 ### Task 3: Subscription Fetching
 
