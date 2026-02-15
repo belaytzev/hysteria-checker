@@ -152,14 +152,14 @@ Also valid: `hy2://...`
 **Files:**
 - Create: `checker/checker.go`
 
-- [ ] Implement `ProxyChecker` struct:
+- [x] Implement `ProxyChecker` struct:
   - Holds list of `ProxyConfig`
   - Stores last check results (status, latency) per proxy
   - Thread-safe with `sync.RWMutex`
-- [ ] Implement `CheckAll()` — iterates all proxies, checks each concurrently (with semaphore to limit concurrency)
-- [ ] Dispatch to v1 or v2 connector based on `ProxyConfig.Version`
-- [ ] Detect host's own public IP at startup (for IP-based check method)
-- [ ] Store results: `map[string]CheckResult` keyed by StableID
+- [x] Implement `CheckAll()` — iterates all proxies, checks each concurrently (with semaphore to limit concurrency)
+- [x] Dispatch to v1 or v2 connector based on `ProxyConfig.Version`
+- [x] Detect host's own public IP at startup (for IP-based check method)
+- [x] Store results: `map[string]CheckResult` keyed by StableID
   ```
   type CheckResult struct {
       Alive     bool
@@ -168,8 +168,8 @@ Also valid: `hy2://...`
       Error     string
   }
   ```
-- [ ] Write tests with mock connectors
-- [ ] Run `go test ./...` — must pass before task 7
+- [x] Write tests with mock connectors
+- [x] Run `go test ./...` — must pass before task 7
 
 ### Task 7: Prometheus Metrics
 
