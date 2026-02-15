@@ -119,21 +119,21 @@ Also valid: `hy2://...`
 - Create: `checker/connector.go`
 - Create: `checker/hysteria2.go`
 
-- [ ] Add dependency: `github.com/apernet/hysteria/core/v2`
-- [ ] Implement `ConnectHysteria2(cfg ProxyConfig) (client.Client, error)`:
+- [x] Add dependency: `github.com/apernet/hysteria/core/v2`
+- [x] Implement `ConnectHysteria2(cfg ProxyConfig) (client.Client, error)`:
   - Resolve server address
   - Build `client.Config` with TLS settings (SNI, insecure, pinSHA256)
   - Handle Salamander obfuscation via extras package if `Obfs == "salamander"`
   - Set bandwidth config if provided
   - Call `client.NewClient(cfg)` — this performs the QUIC handshake and HTTP/3 auth
-- [ ] Implement `CheckViaHysteria2(c client.Client, checkURL string) (alive bool, latency time.Duration, err error)`:
+- [x] Implement `CheckViaHysteria2(c client.Client, checkURL string) (alive bool, latency time.Duration, err error)`:
   - Open TCP connection via `c.TCP("host:port")` to the check URL's host
   - Send HTTP request through the connection
   - Measure round-trip latency
   - For IP check: compare returned IP to host's own IP
   - For status check: verify HTTP status code is 2xx
-- [ ] Write tests with mocked client interface
-- [ ] Run `go test ./...` — must pass before task 5
+- [x] Write tests with mocked client interface
+- [x] Run `go test ./...` — must pass before task 5
 
 ### Task 5: Hysteria v1 Client Connector
 
