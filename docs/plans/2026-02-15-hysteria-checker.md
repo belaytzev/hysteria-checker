@@ -221,7 +221,7 @@ Also valid: `hy2://...`
 **Files:**
 - Modify: `main.go`
 
-- [ ] Wire everything together in `main.go`:
+- [x] Wire everything together in `main.go`:
   1. Parse config
   2. Fetch subscriptions and parse proxy configs
   3. Initialize ProxyChecker
@@ -230,8 +230,8 @@ Also valid: `hy2://...`
   6. Schedule periodic checks using `gocron` or `time.Ticker`
   7. Schedule periodic subscription refresh (re-fetch and update proxy list)
   8. Handle graceful shutdown (SIGTERM/SIGINT)
-- [ ] Write integration-style test for startup sequence
-- [ ] Run `go test ./...` — must pass before task 11
+- [x] Write integration-style test for startup sequence
+- [x] Run `go test ./...` — must pass before task 11
 
 ### Task 11: Docker and Deployment
 

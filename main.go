@@ -1,19 +1,34 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
+	"time"
 
+	"github.com/belaytzev/hysteria-checker/checker"
 	"github.com/belaytzev/hysteria-checker/config"
+	"github.com/belaytzev/hysteria-checker/metrics"
+	"github.com/belaytzev/hysteria-checker/subscription"
+	"github.com/belaytzev/hysteria-checker/web"
 )
 
 func main() {
-	cfg, err := config.Parse(os.Args[1:])
-	if err != nil {
+	if err := run(context.Background(), os.Args[1:]); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
+	}
+}
+
+func run(ctx context.Context, args []string) error {
+	cfg, err := config.Parse(args)
+	if err != nil {
+		return err
 	}
 
 	level := parseLogLevel(cfg.LogLevel)
@@ -28,6 +43,95 @@ func main() {
 		"metrics_port", cfg.MetricsPort,
 		"subscriptions", len(cfg.SubscriptionURL),
 	)
+
+	// Fetch subscriptions and parse proxy configs
+	proxies, err := subscription.FetchAll(cfg.SubscriptionURL, cfg.CheckTimeout)
+	if err != nil {
+		slog.Warn("failed to fetch subscriptions", "error", err)
+	}
+	slog.Info("loaded proxies", "count", len(proxies))
+
+	// Initialize proxy checker
+	pc := checker.NewProxyChecker(
+		proxies,
+		&checker.Hysteria1Connector{},
+		&checker.Hysteria2Connector{},
+		cfg.CheckURL,
+		cfg.CheckTimeout,
+	)
+
+	// Run initial check
+	slog.Info("running initial proxy check")
+	pc.CheckAll()
+	metrics.UpdateMetrics(pc.Results(), pc.Proxies())
+	slog.Info("initial check complete", "proxies", len(proxies))
+
+	// Set up HTTP server
+	metricsHandler := metrics.Handler(cfg.MetricsProtected, cfg.MetricsUsername, cfg.MetricsPassword)
+	router := web.NewRouter(web.RouterConfig{
+		Checker:         pc,
+		MetricsHandler:  metricsHandler,
+		Protected:       cfg.MetricsProtected,
+		Username:        cfg.MetricsUsername,
+		Password:        cfg.MetricsPassword,
+		WebPublic:       cfg.WebPublic,
+		RefreshInterval: int(cfg.CheckInterval.Seconds()),
+	})
+
+	addr := fmt.Sprintf("%s:%d", cfg.MetricsHost, cfg.MetricsPort)
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: router,
+	}
+
+	// Set up signal handling for graceful shutdown
+	ctx, stop := signal.NotifyContext(ctx, syscall.SIGTERM, syscall.SIGINT)
+	defer stop()
+
+	// Start HTTP server
+	go func() {
+		slog.Info("HTTP server listening", "addr", addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("HTTP server error", "error", err)
+		}
+	}()
+
+	// Schedule periodic checks
+	checkTicker := time.NewTicker(cfg.CheckInterval)
+	defer checkTicker.Stop()
+
+	// Schedule periodic subscription refresh (same interval as checks)
+	refreshTicker := time.NewTicker(cfg.CheckInterval)
+	defer refreshTicker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			slog.Info("shutting down")
+			shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			if err := srv.Shutdown(shutdownCtx); err != nil {
+				slog.Error("HTTP server shutdown error", "error", err)
+			}
+			return nil
+
+		case <-checkTicker.C:
+			slog.Debug("running scheduled proxy check")
+			pc.CheckAll()
+			metrics.UpdateMetrics(pc.Results(), pc.Proxies())
+			slog.Debug("scheduled check complete")
+
+		case <-refreshTicker.C:
+			slog.Debug("refreshing subscriptions")
+			newProxies, err := subscription.FetchAll(cfg.SubscriptionURL, cfg.CheckTimeout)
+			if err != nil {
+				slog.Warn("subscription refresh failed", "error", err)
+				continue
+			}
+			pc.UpdateProxies(newProxies)
+			slog.Info("subscriptions refreshed", "proxies", len(newProxies))
+		}
+	}
 }
 
 func parseLogLevel(s string) slog.Level {
