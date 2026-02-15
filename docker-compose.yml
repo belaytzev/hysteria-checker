@@ -1,0 +1,11 @@
+services:
+  hysteria-checker:
+    build: .
+    ports:
+      - "2112:2112"
+    environment:
+      - SUBSCRIPTION_URL=
+      - CHECK_INTERVAL=300s
+      - CHECK_METHOD=ip
+      - LOG_LEVEL=info
+    restart: unless-stopped
