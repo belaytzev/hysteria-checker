@@ -104,14 +104,14 @@ Also valid: `hy2://...`
 **Files:**
 - Create: `subscription/subscription.go`
 
-- [ ] Implement `FetchSubscription(url string) ([]ProxyConfig, error)`:
+- [x] Implement `FetchSubscription(url string) ([]ProxyConfig, error)`:
   - HTTP GET the URL with timeout
   - Try base64 decode the response body
   - Split into lines and parse each as a share link via Task 2 parsers
-- [ ] Support multiple subscription URLs (aggregate results, deduplicate by StableID)
-- [ ] Support direct share links in the subscription URL list (detect by `hysteria://` or `hysteria2://` or `hy2://` prefix)
-- [ ] Write tests with httptest server returning base64-encoded link lists
-- [ ] Run `go test ./...` — must pass before task 4
+- [x] Support multiple subscription URLs (aggregate results, deduplicate by StableID)
+- [x] Support direct share links in the subscription URL list (detect by `hysteria://` or `hysteria2://` or `hy2://` prefix)
+- [x] Write tests with httptest server returning base64-encoded link lists
+- [x] Run `go test ./...` — must pass before task 4
 
 ### Task 4: Hysteria v2 Client Connector
 
