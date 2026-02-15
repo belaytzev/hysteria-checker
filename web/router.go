@@ -8,17 +8,27 @@ import (
 
 // RouterConfig holds configuration for the HTTP router.
 type RouterConfig struct {
-	Checker        *checker.ProxyChecker
-	MetricsHandler http.Handler
-	Protected      bool
-	Username       string
-	Password       string
+	Checker         *checker.ProxyChecker
+	MetricsHandler  http.Handler
+	Protected       bool
+	Username        string
+	Password        string
+	WebPublic       bool
+	RefreshInterval int // dashboard auto-refresh in seconds
 }
 
-// NewRouter creates an http.ServeMux with all API, metrics, and future dashboard routes.
+// NewRouter creates an http.ServeMux with all API, metrics, and dashboard routes.
 func NewRouter(cfg RouterConfig) *http.ServeMux {
 	mux := http.NewServeMux()
 	api := NewAPIHandler(cfg.Checker)
+
+	// Dashboard
+	refreshSec := cfg.RefreshInterval
+	if refreshSec <= 0 {
+		refreshSec = 300
+	}
+	dashboard := NewDashboardHandler(cfg.Checker, refreshSec, cfg.WebPublic)
+	mux.Handle("/", dashboard)
 
 	// Metrics endpoint
 	if cfg.MetricsHandler != nil {

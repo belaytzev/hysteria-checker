@@ -206,15 +206,15 @@ Also valid: `hy2://...`
 - Create: `web/dashboard.go`
 - Create: `web/templates/index.html`
 
-- [ ] Implement HTML dashboard at `GET /`:
+- [x] Implement HTML dashboard at `GET /`:
   - Table showing: proxy name, version (hy1/hy2), server address, status (up/down), latency
   - Auto-refresh every check interval
   - Dark/light theme support
   - Responsive design
-- [ ] Use Go's `html/template` with embedded templates (`embed` package)
-- [ ] Optionally hide server details when `WEB_PUBLIC=true` and not authenticated
-- [ ] Write tests for dashboard handler (status code, content type)
-- [ ] Run `go test ./...` — must pass before task 10
+- [x] Use Go's `html/template` with embedded templates (`embed` package)
+- [x] Optionally hide server details when `WEB_PUBLIC=true` and not authenticated
+- [x] Write tests for dashboard handler (status code, content type)
+- [x] Run `go test ./...` — must pass before task 10
 
 ### Task 10: Scheduler and Main Wiring
 
