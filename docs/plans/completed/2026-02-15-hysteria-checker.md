@@ -258,6 +258,6 @@ Also valid: `hy2://...`
 
 ### Task 13: Update Documentation
 
-- [ ] Write README.md: project description, features, configuration reference, Docker usage, screenshots
-- [ ] Update CLAUDE.md if internal patterns changed
-- [ ] Move this plan to `docs/plans/completed/`
+- [x] Write README.md: project description, features, configuration reference, Docker usage, screenshots
+- [x] Update CLAUDE.md if internal patterns changed
+- [x] Move this plan to `docs/plans/completed/`
