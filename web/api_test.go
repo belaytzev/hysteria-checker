@@ -84,7 +84,9 @@ func TestGetProxy(t *testing.T) {
 		}
 
 		var resp ProxyResponse
-		json.NewDecoder(w.Body).Decode(&resp)
+		if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+			t.Fatalf("failed to decode response: %v", err)
+		}
 		if resp.ID != "abc123" || !resp.Alive {
 			t.Errorf("unexpected response: %+v", resp)
 		}
@@ -135,7 +137,9 @@ func TestStatus(t *testing.T) {
 	}
 
 	var resp StatusResponse
-	json.NewDecoder(w.Body).Decode(&resp)
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
 
 	if resp.Total != 3 {
 		t.Errorf("expected total 3, got %d", resp.Total)
@@ -242,7 +246,9 @@ func TestEmptyProxies(t *testing.T) {
 		api.ListProxies(w, req)
 
 		var resp []ProxyResponse
-		json.NewDecoder(w.Body).Decode(&resp)
+		if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+			t.Fatalf("failed to decode response: %v", err)
+		}
 		if len(resp) != 0 {
 			t.Errorf("expected empty list, got %d items", len(resp))
 		}
@@ -254,7 +260,9 @@ func TestEmptyProxies(t *testing.T) {
 		api.Status(w, req)
 
 		var resp StatusResponse
-		json.NewDecoder(w.Body).Decode(&resp)
+		if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+			t.Fatalf("failed to decode response: %v", err)
+		}
 		if resp.Total != 0 || resp.Up != 0 || resp.Down != 0 {
 			t.Errorf("expected all zeros, got %+v", resp)
 		}

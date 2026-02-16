@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -28,7 +29,7 @@ func TestHysteria1Connector_BinaryNotFound(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error when binary not found")
 	}
-	if got := err.Error(); !contains(got, "not found") {
+	if got := err.Error(); !strings.Contains(got, "not found") {
 		t.Errorf("expected 'not found' in error, got: %s", got)
 	}
 }
@@ -98,7 +99,7 @@ func TestWaitForPort_Timeout(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected timeout error")
 	}
-	if got := err.Error(); !contains(got, "timeout") {
+	if got := err.Error(); !strings.Contains(got, "timeout") {
 		t.Errorf("expected 'timeout' in error, got: %s", got)
 	}
 }
@@ -222,7 +223,7 @@ func TestDialViaSocks5_Success(t *testing.T) {
 	fmt.Fprintf(conn, "GET / HTTP/1.0\r\nHost: localhost\r\n\r\n")
 	resp := make([]byte, 1024)
 	n, _ := conn.Read(resp)
-	if !contains(string(resp[:n]), "hello from test") {
+	if !strings.Contains(string(resp[:n]), "hello from test") {
 		t.Errorf("unexpected response: %s", string(resp[:n]))
 	}
 }
@@ -252,7 +253,7 @@ func TestCheckViaProxy_WithSocks5(t *testing.T) {
 	// Create a ProxyClient backed by our SOCKS5 proxy
 	client := &socks5ProxyClient{socksAddr: socks.Addr().String()}
 
-	alive, latency, err := CheckViaProxy(client, ts.URL, 10*time.Second)
+	alive, latency, _, err := CheckViaProxy(client, ts.URL, 10*time.Second)
 	if err != nil {
 		t.Fatalf("CheckViaProxy returned error: %v", err)
 	}
@@ -277,44 +278,4 @@ func (s *socks5ProxyClient) Close() error {
 	return nil
 }
 
-func TestReadFull(t *testing.T) {
-	// Create a pipe to test readFull
-	server, client := net.Pipe()
-	defer server.Close()
-	defer client.Close()
 
-	go func() {
-		// Write in two chunks
-		server.Write([]byte{0x01, 0x02})
-		time.Sleep(10 * time.Millisecond)
-		server.Write([]byte{0x03, 0x04})
-	}()
-
-	buf := make([]byte, 4)
-	n, err := readFull(client, buf)
-	if err != nil {
-		t.Fatalf("readFull returned error: %v", err)
-	}
-	if n != 4 {
-		t.Errorf("expected 4 bytes, got %d", n)
-	}
-	expected := []byte{0x01, 0x02, 0x03, 0x04}
-	for i, b := range buf {
-		if b != expected[i] {
-			t.Errorf("byte %d: expected %x, got %x", i, expected[i], b)
-		}
-	}
-}
-
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsHelper(s, substr))
-}
-
-func containsHelper(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
-}

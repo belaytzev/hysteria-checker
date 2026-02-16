@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"embed"
 	"fmt"
 	"html/template"
@@ -51,6 +52,11 @@ func NewDashboardHandler(pc *checker.ProxyChecker, refreshIntervalSec int, publi
 
 // ServeHTTP renders the dashboard HTML page.
 func (h *DashboardHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+
 	proxies := h.checker.Proxies()
 	results := h.checker.Results()
 
@@ -79,8 +85,11 @@ func (h *DashboardHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	data.Total = len(proxies)
 	data.Down = data.Total - data.Up
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := dashboardTmpl.Execute(w, data); err != nil {
+	var buf bytes.Buffer
+	if err := dashboardTmpl.Execute(&buf, data); err != nil {
 		http.Error(w, "template error", http.StatusInternalServerError)
+		return
 	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, _ = buf.WriteTo(w)
 }

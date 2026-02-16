@@ -3,6 +3,7 @@ package checker
 import (
 	"bufio"
 	"crypto/sha256"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/hex"
 	"fmt"
@@ -114,11 +115,11 @@ func (c *Hysteria2Connector) Connect(cfg models.ProxyConfig) (ProxyClient, error
 }
 
 // CheckViaProxy performs a health check by making an HTTP request through the proxy.
-// It returns whether the proxy is alive, the round-trip latency, and any error.
-func CheckViaProxy(pc ProxyClient, checkURL string, timeout time.Duration) (alive bool, latency time.Duration, err error) {
+// It returns whether the proxy is alive, the round-trip latency, the response body, and any error.
+func CheckViaProxy(pc ProxyClient, checkURL string, timeout time.Duration) (alive bool, latency time.Duration, respBody string, err error) {
 	parsed, err := url.Parse(checkURL)
 	if err != nil {
-		return false, 0, fmt.Errorf("invalid check URL: %w", err)
+		return false, 0, "", fmt.Errorf("invalid check URL: %w", err)
 	}
 
 	host := parsed.Hostname()
@@ -133,40 +134,51 @@ func CheckViaProxy(pc ProxyClient, checkURL string, timeout time.Duration) (aliv
 
 	start := time.Now()
 
-	conn, err := pc.TCP(net.JoinHostPort(host, port))
+	rawConn, err := pc.TCP(net.JoinHostPort(host, port))
 	if err != nil {
-		return false, 0, fmt.Errorf("TCP connect failed: %w", err)
+		return false, 0, "", fmt.Errorf("TCP connect failed: %w", err)
 	}
-	defer func() { _ = conn.Close() }()
+	defer func() { _ = rawConn.Close() }()
 
-	if err := conn.SetDeadline(time.Now().Add(timeout)); err != nil {
-		return false, 0, fmt.Errorf("failed to set deadline: %w", err)
+	if err := rawConn.SetDeadline(time.Now().Add(timeout)); err != nil {
+		return false, 0, "", fmt.Errorf("failed to set deadline: %w", err)
+	}
+
+	// Wrap with TLS if the check URL uses HTTPS
+	conn := rawConn
+	if parsed.Scheme == "https" {
+		tlsConn := tls.Client(rawConn, &tls.Config{ServerName: host})
+		if err := tlsConn.Handshake(); err != nil {
+			return false, 0, "", fmt.Errorf("TLS handshake failed: %w", err)
+		}
+		conn = tlsConn
 	}
 
 	// Build and send raw HTTP request through the proxied connection
 	reqStr := fmt.Sprintf("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\nUser-Agent: hysteria-checker/1.0\r\n\r\n",
 		parsed.RequestURI(), parsed.Host)
 	if _, err := conn.Write([]byte(reqStr)); err != nil {
-		return false, 0, fmt.Errorf("write request failed: %w", err)
+		return false, 0, "", fmt.Errorf("write request failed: %w", err)
 	}
 
 	// Read and parse the HTTP response
 	resp, err := http.ReadResponse(bufio.NewReader(conn), nil)
 	if err != nil {
-		return false, 0, fmt.Errorf("read response failed: %w", err)
+		return false, 0, "", fmt.Errorf("read response failed: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	// Read body (needed for IP check method; also ensures full round trip)
-	_, _ = io.ReadAll(resp.Body)
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
 
 	latency = time.Since(start)
+	bodyStr := strings.TrimSpace(string(body))
 
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		return true, latency, nil
+		return true, latency, bodyStr, nil
 	}
 
-	return false, latency, fmt.Errorf("HTTP status %d", resp.StatusCode)
+	return false, latency, bodyStr, fmt.Errorf("HTTP status %d", resp.StatusCode)
 }
 
 // normalizeCertHash removes colons and hyphens from a certificate hash string

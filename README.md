@@ -97,8 +97,8 @@ All options can be set via CLI flags or environment variables.
 
 | Metric | Labels | Description |
 |---|---|---|
-| `hysteria_proxy_status` | `version`, `address`, `name`, `sub_name` | Proxy status: 1 = up, 0 = down |
-| `hysteria_proxy_latency_ms` | `version`, `address`, `name`, `sub_name` | Latency in milliseconds (0 if down) |
+| `hysteria_proxy_status` | `version`, `address`, `name`, `id` | Proxy status: 1 = up, 0 = down |
+| `hysteria_proxy_latency_ms` | `version`, `address`, `name`, `id` | Latency in milliseconds (0 if down) |
 
 ## URI Formats
 
