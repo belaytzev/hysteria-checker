@@ -52,12 +52,24 @@ func run(ctx context.Context, args []string) error {
 	slog.Info("loaded proxies", "count", len(proxies))
 
 	// Initialize proxy checker
+	var opts []checker.ProxyCheckerOption
+	opts = append(opts, checker.WithCheckMethod(cfg.CheckMethod))
+	if cfg.CheckMethod == "ip" {
+		hostIP, err := checker.DetectHostIP(cfg.CheckURL, cfg.CheckTimeout)
+		if err != nil {
+			slog.Warn("failed to detect host IP, falling back to status-only checks", "error", err)
+		} else {
+			slog.Info("detected host IP", "ip", hostIP)
+			opts = append(opts, checker.WithHostIP(hostIP))
+		}
+	}
 	pc := checker.NewProxyChecker(
 		proxies,
 		&checker.Hysteria1Connector{},
 		&checker.Hysteria2Connector{},
 		cfg.CheckURL,
 		cfg.CheckTimeout,
+		opts...,
 	)
 
 	// Run initial check
@@ -80,8 +92,11 @@ func run(ctx context.Context, args []string) error {
 
 	addr := fmt.Sprintf("%s:%d", cfg.MetricsHost, cfg.MetricsPort)
 	srv := &http.Server{
-		Addr:    addr,
-		Handler: router,
+		Addr:         addr,
+		Handler:      router,
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	}
 
 	// Set up signal handling for graceful shutdown
@@ -96,13 +111,9 @@ func run(ctx context.Context, args []string) error {
 		}
 	}()
 
-	// Schedule periodic checks
-	checkTicker := time.NewTicker(cfg.CheckInterval)
-	defer checkTicker.Stop()
-
-	// Schedule periodic subscription refresh (same interval as checks)
-	refreshTicker := time.NewTicker(cfg.CheckInterval)
-	defer refreshTicker.Stop()
+	// Single ticker for both subscription refresh and health checks
+	ticker := time.NewTicker(cfg.CheckInterval)
+	defer ticker.Stop()
 
 	for {
 		select {
@@ -115,21 +126,21 @@ func run(ctx context.Context, args []string) error {
 			}
 			return nil
 
-		case <-checkTicker.C:
-			slog.Debug("running scheduled proxy check")
-			pc.CheckAll()
-			metrics.UpdateMetrics(pc.Results(), pc.Proxies())
-			slog.Debug("scheduled check complete")
-
-		case <-refreshTicker.C:
+		case <-ticker.C:
+			// Refresh subscriptions first, then run checks
 			slog.Debug("refreshing subscriptions")
 			newProxies, err := subscription.FetchAll(cfg.SubscriptionURL, cfg.CheckTimeout)
 			if err != nil {
 				slog.Warn("subscription refresh failed", "error", err)
-				continue
+			} else {
+				pc.UpdateProxies(newProxies)
+				slog.Info("subscriptions refreshed", "proxies", len(newProxies))
 			}
-			pc.UpdateProxies(newProxies)
-			slog.Info("subscriptions refreshed", "proxies", len(newProxies))
+
+			slog.Debug("running scheduled proxy check")
+			pc.CheckAll()
+			metrics.UpdateMetrics(pc.Results(), pc.Proxies())
+			slog.Debug("scheduled check complete")
 		}
 	}
 }

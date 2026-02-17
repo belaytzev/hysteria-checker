@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/belaytzev/hysteria-checker/checker"
+	"github.com/belaytzev/hysteria-checker/middleware"
 	"github.com/belaytzev/hysteria-checker/models"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -71,17 +72,5 @@ func Handler(protected bool, username, password string) http.Handler {
 	if !protected {
 		return h
 	}
-	return basicAuth(h, username, password)
-}
-
-func basicAuth(next http.Handler, username, password string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		u, p, ok := r.BasicAuth()
-		if !ok || u != username || p != password {
-			w.Header().Set("WWW-Authenticate", `Basic realm="metrics"`)
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
+	return middleware.BasicAuth(h, username, password)
 }

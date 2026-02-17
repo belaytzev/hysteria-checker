@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -22,6 +23,7 @@ type ProxyChecker struct {
 	checkURL    string
 	timeout     time.Duration
 	hostIP      string
+	checkMethod string
 	concurrency int
 }
 
@@ -41,6 +43,13 @@ func WithConcurrency(n int) ProxyCheckerOption {
 func WithHostIP(ip string) ProxyCheckerOption {
 	return func(pc *ProxyChecker) {
 		pc.hostIP = ip
+	}
+}
+
+// WithCheckMethod sets the check method ("ip" or "status").
+func WithCheckMethod(method string) ProxyCheckerOption {
+	return func(pc *ProxyChecker) {
+		pc.checkMethod = method
 	}
 }
 
@@ -172,7 +181,7 @@ func (pc *ProxyChecker) checkOne(proxy models.ProxyConfig) CheckResult {
 	}
 	defer func() { _ = client.Close() }()
 
-	alive, latency, err := CheckViaProxy(client, pc.checkURL, pc.timeout)
+	alive, latency, body, err := CheckViaProxy(client, pc.checkURL, pc.timeout)
 	result := CheckResult{
 		Alive:     alive,
 		Latency:   latency,
@@ -181,6 +190,15 @@ func (pc *ProxyChecker) checkOne(proxy models.ProxyConfig) CheckResult {
 	if err != nil {
 		result.Error = err.Error()
 		slog.Warn("proxy check failed", "name", proxy.Name, "server", proxy.Server, "error", err)
+	} else if pc.checkMethod == "ip" && pc.hostIP != "" {
+		// For IP check: verify the proxy's exit IP differs from the host's IP
+		if body == pc.hostIP {
+			result.Alive = false
+			result.Error = "proxy exit IP matches host IP"
+			slog.Warn("proxy IP matches host", "name", proxy.Name, "server", proxy.Server, "ip", body)
+		} else {
+			slog.Info("proxy check passed", "name", proxy.Name, "server", proxy.Server, "latency", latency, "ip", body)
+		}
 	} else {
 		slog.Info("proxy check passed", "name", proxy.Name, "server", proxy.Server, "latency", latency)
 	}
@@ -196,7 +214,11 @@ func DetectHostIP(checkURL string, timeout time.Duration) (string, error) {
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	body, err := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("host IP detection returned status %d from %s", resp.StatusCode, checkURL)
+	}
+
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1024))
 	if err != nil {
 		return "", fmt.Errorf("failed to read host IP response: %w", err)
 	}
@@ -204,6 +226,9 @@ func DetectHostIP(checkURL string, timeout time.Duration) (string, error) {
 	ip := strings.TrimSpace(string(body))
 	if ip == "" {
 		return "", fmt.Errorf("empty IP response from %s", checkURL)
+	}
+	if net.ParseIP(ip) == nil {
+		return "", fmt.Errorf("invalid IP address %q from %s", ip, checkURL)
 	}
 	return ip, nil
 }

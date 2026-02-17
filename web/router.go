@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/belaytzev/hysteria-checker/checker"
+	"github.com/belaytzev/hysteria-checker/middleware"
 )
 
 // RouterConfig holds configuration for the HTTP router.
@@ -41,9 +42,9 @@ func NewRouter(cfg RouterConfig) *http.ServeMux {
 	apiStatus := http.HandlerFunc(api.Status)
 
 	if cfg.Protected {
-		mux.Handle("/api/v1/proxies/", basicAuth(apiProxy, cfg.Username, cfg.Password))
-		mux.Handle("/api/v1/proxies", basicAuth(apiProxies, cfg.Username, cfg.Password))
-		mux.Handle("/api/v1/status", basicAuth(apiStatus, cfg.Username, cfg.Password))
+		mux.Handle("/api/v1/proxies/", middleware.BasicAuth(apiProxy, cfg.Username, cfg.Password))
+		mux.Handle("/api/v1/proxies", middleware.BasicAuth(apiProxies, cfg.Username, cfg.Password))
+		mux.Handle("/api/v1/status", middleware.BasicAuth(apiStatus, cfg.Username, cfg.Password))
 	} else {
 		mux.Handle("/api/v1/proxies/", apiProxy)
 		mux.Handle("/api/v1/proxies", apiProxies)
@@ -51,16 +52,4 @@ func NewRouter(cfg RouterConfig) *http.ServeMux {
 	}
 
 	return mux
-}
-
-func basicAuth(next http.Handler, username, password string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		u, p, ok := r.BasicAuth()
-		if !ok || u != username || p != password {
-			w.Header().Set("WWW-Authenticate", `Basic realm="api"`)
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
 }

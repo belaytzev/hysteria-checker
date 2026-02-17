@@ -60,7 +60,7 @@ func TestCheckViaProxy_Success(t *testing.T) {
 		},
 	}
 
-	alive, latency, err := CheckViaProxy(mc, ts.URL, 10*time.Second)
+	alive, latency, _, err := CheckViaProxy(mc, ts.URL, 10*time.Second)
 	if err != nil {
 		t.Fatalf("CheckViaProxy returned error: %v", err)
 	}
@@ -85,7 +85,7 @@ func TestCheckViaProxy_ServerError(t *testing.T) {
 		},
 	}
 
-	alive, _, err := CheckViaProxy(mc, ts.URL, 10*time.Second)
+	alive, _, _, err := CheckViaProxy(mc, ts.URL, 10*time.Second)
 	if err == nil {
 		t.Fatal("expected error for 500 response")
 	}
@@ -104,7 +104,7 @@ func TestCheckViaProxy_TCPConnectFailure(t *testing.T) {
 		},
 	}
 
-	alive, _, err := CheckViaProxy(mc, "http://example.com/check", 10*time.Second)
+	alive, _, _, err := CheckViaProxy(mc, "http://example.com/check", 10*time.Second)
 	if err == nil {
 		t.Fatal("expected error for TCP connect failure")
 	}
@@ -119,7 +119,7 @@ func TestCheckViaProxy_TCPConnectFailure(t *testing.T) {
 func TestCheckViaProxy_InvalidURL(t *testing.T) {
 	mc := &mockProxyClient{}
 
-	alive, _, err := CheckViaProxy(mc, "://invalid", 10*time.Second)
+	alive, _, _, err := CheckViaProxy(mc, "://invalid", 10*time.Second)
 	if err == nil {
 		t.Fatal("expected error for invalid URL")
 	}
@@ -148,7 +148,7 @@ func TestCheckViaProxy_DefaultPorts(t *testing.T) {
 				},
 			}
 
-			CheckViaProxy(mc, tt.url, 10*time.Second)
+			_, _, _, _ = CheckViaProxy(mc, tt.url, 10*time.Second)
 			if dialedAddr != tt.expectedAddr {
 				t.Errorf("expected dial to %s, got %s", tt.expectedAddr, dialedAddr)
 			}
@@ -199,27 +199,4 @@ func TestConnectorInterface(t *testing.T) {
 func TestProxyClientInterface(t *testing.T) {
 	// Verify mockProxyClient implements ProxyClient
 	var _ ProxyClient = &mockProxyClient{}
-}
-
-func TestCheckResult_Fields(t *testing.T) {
-	now := time.Now()
-	cr := CheckResult{
-		Alive:     true,
-		Latency:   150 * time.Millisecond,
-		LastCheck: now,
-		Error:     "",
-	}
-
-	if !cr.Alive {
-		t.Error("expected Alive=true")
-	}
-	if cr.Latency != 150*time.Millisecond {
-		t.Errorf("expected Latency=150ms, got %v", cr.Latency)
-	}
-	if cr.LastCheck != now {
-		t.Error("expected LastCheck to match")
-	}
-	if cr.Error != "" {
-		t.Error("expected empty Error")
-	}
 }

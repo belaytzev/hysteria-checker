@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"strconv"
 	"strings"
@@ -33,7 +34,7 @@ func ParseHysteria2(rawURI string) (*models.ProxyConfig, error) {
 
 	cfg := &models.ProxyConfig{
 		Version: 2,
-		Server:  net_JoinHostPort(host, port),
+		Server:  net.JoinHostPort(host, port),
 		Name:    u.Fragment,
 	}
 

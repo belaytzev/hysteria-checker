@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"strconv"
 	"strings"
@@ -33,7 +34,7 @@ func ParseHysteria1(rawURI string) (*models.ProxyConfig, error) {
 
 	cfg := &models.ProxyConfig{
 		Version: 1,
-		Server:  net_JoinHostPort(host, port),
+		Server:  net.JoinHostPort(host, port),
 		Name:    u.Fragment,
 	}
 
@@ -68,12 +69,4 @@ func ParseHysteria1(rawURI string) (*models.ProxyConfig, error) {
 
 	cfg.GenerateStableID()
 	return cfg, nil
-}
-
-// net_JoinHostPort joins host and port, wrapping IPv6 addresses in brackets.
-func net_JoinHostPort(host, port string) string {
-	if strings.Contains(host, ":") {
-		return "[" + host + "]:" + port
-	}
-	return host + ":" + port
 }

@@ -3,6 +3,7 @@ package checker
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"os/exec"
@@ -182,7 +183,7 @@ func dialViaSocks5(proxyAddr, target string, timeout time.Duration) (net.Conn, e
 
 	// Read greeting response (2 bytes)
 	resp := make([]byte, 2)
-	if _, err := readFull(conn, resp); err != nil {
+	if _, err := io.ReadFull(conn, resp); err != nil {
 		_ = conn.Close()
 		return nil, fmt.Errorf("SOCKS5 greeting read failed: %w", err)
 	}
@@ -221,7 +222,7 @@ func dialViaSocks5(proxyAddr, target string, timeout time.Duration) (net.Conn, e
 
 	// Read response: at least 4 bytes for header, then address
 	header := make([]byte, 4)
-	if _, err := readFull(conn, header); err != nil {
+	if _, err := io.ReadFull(conn, header); err != nil {
 		_ = conn.Close()
 		return nil, fmt.Errorf("SOCKS5 connect response read failed: %w", err)
 	}
@@ -231,35 +232,28 @@ func dialViaSocks5(proxyAddr, target string, timeout time.Duration) (net.Conn, e
 	}
 
 	// Skip the bound address in the response
+	var skipErr error
 	switch header[3] {
 	case 0x01: // IPv4
 		skip := make([]byte, 4+2)
-		_, _ = readFull(conn, skip)
+		_, skipErr = io.ReadFull(conn, skip)
 	case 0x04: // IPv6
 		skip := make([]byte, 16+2)
-		_, _ = readFull(conn, skip)
+		_, skipErr = io.ReadFull(conn, skip)
 	case 0x03: // Domain
 		lenBuf := make([]byte, 1)
-		_, _ = readFull(conn, lenBuf)
-		skip := make([]byte, int(lenBuf[0])+2)
-		_, _ = readFull(conn, skip)
+		if _, skipErr = io.ReadFull(conn, lenBuf); skipErr == nil {
+			skip := make([]byte, int(lenBuf[0])+2)
+			_, skipErr = io.ReadFull(conn, skip)
+		}
+	}
+	if skipErr != nil {
+		_ = conn.Close()
+		return nil, fmt.Errorf("SOCKS5 failed to read bound address: %w", skipErr)
 	}
 
 	// Clear deadline for the caller to manage
 	_ = conn.SetDeadline(time.Time{})
 
 	return conn, nil
-}
-
-// readFull reads exactly len(buf) bytes from conn.
-func readFull(conn net.Conn, buf []byte) (int, error) {
-	n := 0
-	for n < len(buf) {
-		nn, err := conn.Read(buf[n:])
-		n += nn
-		if err != nil {
-			return n, err
-		}
-	}
-	return n, nil
 }
