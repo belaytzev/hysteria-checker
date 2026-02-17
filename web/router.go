@@ -29,7 +29,11 @@ func NewRouter(cfg RouterConfig) *http.ServeMux {
 		refreshSec = 300
 	}
 	dashboard := NewDashboardHandler(cfg.Checker, refreshSec, cfg.WebPublic)
-	mux.Handle("/", dashboard)
+	if cfg.Protected && !cfg.WebPublic {
+		mux.Handle("/", middleware.BasicAuth(dashboard, cfg.Username, cfg.Password))
+	} else {
+		mux.Handle("/", dashboard)
+	}
 
 	// Metrics endpoint
 	if cfg.MetricsHandler != nil {

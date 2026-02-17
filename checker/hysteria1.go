@@ -205,6 +205,10 @@ func dialViaSocks5(proxyAddr, target string, timeout time.Duration) (net.Conn, e
 	}
 
 	// CONNECT request
+	if len(host) > 255 {
+		_ = conn.Close()
+		return nil, fmt.Errorf("hostname too long for SOCKS5: %d bytes", len(host))
+	}
 	req := []byte{
 		0x05, // version
 		0x01, // CONNECT

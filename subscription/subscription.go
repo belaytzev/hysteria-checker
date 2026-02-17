@@ -34,12 +34,12 @@ func FetchSubscription(url string, timeout time.Duration) ([]models.ProxyConfig,
 	client := &http.Client{Timeout: timeout}
 	resp, err := client.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("fetching subscription %q: %w", url, err)
+		return nil, fmt.Errorf("fetching subscription: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("subscription %q returned status %d", url, resp.StatusCode)
+		return nil, fmt.Errorf("subscription returned status %d", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 10*1024*1024))
@@ -57,22 +57,29 @@ func FetchSubscription(url string, timeout time.Duration) ([]models.ProxyConfig,
 	return configs, nil
 }
 
-// decodeContent tries to base64-decode the input. If decoding fails, returns the original string.
+// decodeContent tries to base64-decode the input. If decoding fails or the decoded
+// content doesn't look like hysteria links, returns the original string.
 func decodeContent(s string) string {
 	s = strings.TrimSpace(s)
-	decoded, err := base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		// Try URL-safe base64
-		decoded, err = base64.URLEncoding.DecodeString(s)
-		if err != nil {
-			// Try without padding
-			decoded, err = base64.RawStdEncoding.DecodeString(s)
-			if err != nil {
-				return s
-			}
+	encodings := []*base64.Encoding{
+		base64.StdEncoding,
+		base64.URLEncoding,
+		base64.RawStdEncoding,
+	}
+	for _, enc := range encodings {
+		decoded, err := enc.DecodeString(s)
+		if err == nil && looksLikeLinks(string(decoded)) {
+			return string(decoded)
 		}
 	}
-	return string(decoded)
+	return s
+}
+
+// looksLikeLinks checks if the content contains hysteria share link prefixes.
+func looksLikeLinks(s string) bool {
+	return strings.Contains(s, "hysteria://") ||
+		strings.Contains(s, "hysteria2://") ||
+		strings.Contains(s, "hy2://")
 }
 
 // FetchAll fetches multiple subscription URLs, aggregates results, and deduplicates by StableID.
