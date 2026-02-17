@@ -45,27 +45,22 @@ func (h *hysteria1Client) Close() error {
 }
 
 // hysteria1Config is the JSON config format for the hysteria v1 client binary.
+// See https://v1.hysteria.network/docs/advanced-usage/ for the config reference.
 type hysteria1Config struct {
-	Server     string            `json:"server"`
-	Protocol   string            `json:"protocol,omitempty"`
-	UpMbps     int               `json:"up_mbps"`
-	DownMbps   int               `json:"down_mbps"`
-	Auth       string            `json:"auth_str,omitempty"`
-	ALPN       string            `json:"alpn,omitempty"`
-	Insecure   bool              `json:"insecure,omitempty"`
-	Obfs       string            `json:"obfs,omitempty"`
-	ObfsParam  string            `json:"obfs_param,omitempty"`
-	SOCKS5     hysteria1Socks5   `json:"socks5"`
-	TLS        *hysteria1TLSConf `json:"tls,omitempty"`
+	Server     string          `json:"server"`
+	Protocol   string          `json:"protocol,omitempty"`
+	UpMbps     int             `json:"up_mbps"`
+	DownMbps   int             `json:"down_mbps"`
+	Auth       string          `json:"auth_str,omitempty"`
+	ALPN       string          `json:"alpn,omitempty"`
+	ServerName string          `json:"server_name,omitempty"`
+	Insecure   bool            `json:"insecure,omitempty"`
+	Obfs       string          `json:"obfs,omitempty"`
+	SOCKS5     hysteria1Socks5 `json:"socks5"`
 }
 
 type hysteria1Socks5 struct {
 	Listen string `json:"listen"`
-}
-
-type hysteria1TLSConf struct {
-	SNI      string `json:"sni,omitempty"`
-	Insecure bool   `json:"insecure,omitempty"`
 }
 
 func (c *Hysteria1Connector) Connect(cfg models.ProxyConfig) (ProxyClient, error) {
@@ -103,14 +98,13 @@ func (c *Hysteria1Connector) Connect(cfg models.ProxyConfig) (ProxyClient, error
 		hyCfg.ALPN = cfg.ALPN
 	}
 	if strings.EqualFold(cfg.Obfs, "xplus") && cfg.ObfsParam != "" {
-		hyCfg.Obfs = "xplus"
-		hyCfg.ObfsParam = cfg.ObfsParam
+		hyCfg.Obfs = cfg.ObfsParam
 	}
-	if cfg.SNI != "" || cfg.Insecure {
-		hyCfg.TLS = &hysteria1TLSConf{
-			SNI:      cfg.SNI,
-			Insecure: cfg.Insecure,
-		}
+	if cfg.SNI != "" {
+		hyCfg.ServerName = cfg.SNI
+	}
+	if cfg.Insecure {
+		hyCfg.Insecure = true
 	}
 
 	// Write config to a temp file
