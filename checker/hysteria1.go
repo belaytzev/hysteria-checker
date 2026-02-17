@@ -205,20 +205,27 @@ func dialViaSocks5(proxyAddr, target string, timeout time.Duration) (net.Conn, e
 		return nil, fmt.Errorf("invalid port: %w", err)
 	}
 
-	// CONNECT request
-	if len(host) > 255 {
-		_ = conn.Close()
-		return nil, fmt.Errorf("hostname too long for SOCKS5: %d bytes", len(host))
+	// CONNECT request — use correct SOCKS5 address type for IPs vs domains
+	portBytes := []byte{byte(port >> 8), byte(port & 0xff)}
+	req := []byte{0x05, 0x01, 0x00} // version, CONNECT, reserved
+
+	if ip := net.ParseIP(host); ip != nil {
+		if ip4 := ip.To4(); ip4 != nil {
+			req = append(req, 0x01) // IPv4
+			req = append(req, ip4...)
+		} else {
+			req = append(req, 0x04) // IPv6
+			req = append(req, ip.To16()...)
+		}
+	} else {
+		if len(host) > 255 {
+			_ = conn.Close()
+			return nil, fmt.Errorf("hostname too long for SOCKS5: %d bytes", len(host))
+		}
+		req = append(req, 0x03, byte(len(host))) // domain
+		req = append(req, []byte(host)...)
 	}
-	req := []byte{
-		0x05, // version
-		0x01, // CONNECT
-		0x00, // reserved
-		0x03, // domain name
-		byte(len(host)),
-	}
-	req = append(req, []byte(host)...)
-	req = append(req, byte(port>>8), byte(port&0xff))
+	req = append(req, portBytes...)
 
 	if _, err := conn.Write(req); err != nil {
 		_ = conn.Close()

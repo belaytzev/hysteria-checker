@@ -66,6 +66,7 @@ func decodeContent(s string) string {
 		base64.StdEncoding,
 		base64.URLEncoding,
 		base64.RawStdEncoding,
+		base64.RawURLEncoding,
 	}
 	for _, enc := range encodings {
 		decoded, err := enc.DecodeString(s)

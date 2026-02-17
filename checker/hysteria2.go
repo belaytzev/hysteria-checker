@@ -169,12 +169,15 @@ func CheckViaProxy(pc ProxyClient, checkURL string, timeout time.Duration) (aliv
 	defer func() { _ = resp.Body.Close() }()
 
 	// Read body (needed for IP check method; also ensures full round trip)
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+	body, readErr := io.ReadAll(io.LimitReader(resp.Body, 1024))
 
 	latency = time.Since(start)
 	bodyStr := strings.TrimSpace(string(body))
 
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		if readErr != nil {
+			return false, latency, "", fmt.Errorf("body read failed: %w", readErr)
+		}
 		return true, latency, bodyStr, nil
 	}
 
