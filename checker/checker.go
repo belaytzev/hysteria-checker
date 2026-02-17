@@ -192,11 +192,12 @@ func (pc *ProxyChecker) checkOne(proxy models.ProxyConfig) CheckResult {
 		slog.Warn("proxy check failed", "name", proxy.Name, "server", proxy.Server, "error", err)
 	} else if pc.checkMethod == "ip" && pc.hostIP != "" {
 		// For IP check: verify the proxy's exit IP differs from the host's IP
-		if net.ParseIP(body) == nil {
+		proxyIP := net.ParseIP(body)
+		if proxyIP == nil {
 			result.Alive = false
 			result.Error = fmt.Sprintf("proxy returned non-IP response: %q", body)
 			slog.Warn("proxy returned non-IP response", "name", proxy.Name, "server", proxy.Server, "body", body)
-		} else if net.ParseIP(body).Equal(net.ParseIP(pc.hostIP)) {
+		} else if proxyIP.Equal(net.ParseIP(pc.hostIP)) {
 			result.Alive = false
 			result.Error = "proxy exit IP matches host IP"
 			slog.Warn("proxy IP matches host", "name", proxy.Name, "server", proxy.Server, "ip", body)

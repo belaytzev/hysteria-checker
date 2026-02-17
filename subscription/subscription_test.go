@@ -184,10 +184,10 @@ func TestFetchAll_PartialFailure(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	// One good URL, one bad URL
+	// One good URL, one bad URL - should return configs AND an error
 	configs, err := FetchAll([]string{srv.URL, "http://localhost:1/nonexistent"}, testTimeout)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+	if err == nil {
+		t.Fatal("expected error for partial failure")
 	}
 	if len(configs) != 1 {
 		t.Fatalf("expected 1 config from partial success, got %d", len(configs))

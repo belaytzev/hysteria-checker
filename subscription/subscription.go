@@ -109,8 +109,8 @@ func FetchAll(urls []string, timeout time.Duration) ([]models.ProxyConfig, error
 		}
 	}
 
-	if len(result) == 0 && len(errs) > 0 {
-		return nil, fmt.Errorf("no proxies found: %s", strings.Join(errs, "; "))
+	if len(errs) > 0 {
+		return result, fmt.Errorf("subscription errors: %s", strings.Join(errs, "; "))
 	}
 
 	return result, nil
