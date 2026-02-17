@@ -196,7 +196,7 @@ func (pc *ProxyChecker) checkOne(proxy models.ProxyConfig) CheckResult {
 			result.Alive = false
 			result.Error = fmt.Sprintf("proxy returned non-IP response: %q", body)
 			slog.Warn("proxy returned non-IP response", "name", proxy.Name, "server", proxy.Server, "body", body)
-		} else if body == pc.hostIP {
+		} else if net.ParseIP(body).Equal(net.ParseIP(pc.hostIP)) {
 			result.Alive = false
 			result.Error = "proxy exit IP matches host IP"
 			slog.Warn("proxy IP matches host", "name", proxy.Name, "server", proxy.Server, "ip", body)

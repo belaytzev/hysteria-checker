@@ -52,9 +52,9 @@ type hysteria1Config struct {
 	DownMbps   int               `json:"down_mbps"`
 	Auth       string            `json:"auth_str,omitempty"`
 	ALPN       string            `json:"alpn,omitempty"`
-	ServerName string            `json:"server_name,omitempty"`
 	Insecure   bool              `json:"insecure,omitempty"`
 	Obfs       string            `json:"obfs,omitempty"`
+	ObfsParam  string            `json:"obfs_param,omitempty"`
 	SOCKS5     hysteria1Socks5   `json:"socks5"`
 	TLS        *hysteria1TLSConf `json:"tls,omitempty"`
 }
@@ -103,7 +103,8 @@ func (c *Hysteria1Connector) Connect(cfg models.ProxyConfig) (ProxyClient, error
 		hyCfg.ALPN = cfg.ALPN
 	}
 	if strings.EqualFold(cfg.Obfs, "xplus") && cfg.ObfsParam != "" {
-		hyCfg.Obfs = cfg.ObfsParam
+		hyCfg.Obfs = "xplus"
+		hyCfg.ObfsParam = cfg.ObfsParam
 	}
 	if cfg.SNI != "" || cfg.Insecure {
 		hyCfg.TLS = &hysteria1TLSConf{
