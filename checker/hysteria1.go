@@ -250,6 +250,9 @@ func dialViaSocks5(proxyAddr, target string, timeout time.Duration) (net.Conn, e
 			skip := make([]byte, int(lenBuf[0])+2)
 			_, skipErr = io.ReadFull(conn, skip)
 		}
+	default:
+		_ = conn.Close()
+		return nil, fmt.Errorf("SOCKS5 unsupported address type: %d", header[3])
 	}
 	if skipErr != nil {
 		_ = conn.Close()

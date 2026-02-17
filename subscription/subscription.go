@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -34,7 +35,7 @@ func FetchSubscription(url string, timeout time.Duration) ([]models.ProxyConfig,
 	client := &http.Client{Timeout: timeout}
 	resp, err := client.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("fetching subscription: %w", err)
+		return nil, fmt.Errorf("fetching subscription from %s failed", redactURL(url))
 	}
 	defer func() { _ = resp.Body.Close() }()
 
@@ -113,4 +114,16 @@ func FetchAll(urls []string, timeout time.Duration) ([]models.ProxyConfig, error
 	}
 
 	return result, nil
+}
+
+// redactURL returns the URL with query parameters replaced by "REDACTED".
+func redactURL(rawURL string) string {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return "<invalid-url>"
+	}
+	if u.RawQuery != "" {
+		u.RawQuery = "REDACTED"
+	}
+	return u.String()
 }

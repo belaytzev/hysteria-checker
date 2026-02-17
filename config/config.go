@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/alecthomas/kong"
@@ -32,6 +33,9 @@ func Parse(args []string) (*Config, error) {
 	_, err = parser.Parse(args)
 	if err != nil {
 		return nil, err
+	}
+	if cfg.MetricsProtected && (cfg.MetricsUsername == "" || cfg.MetricsPassword == "") {
+		return nil, fmt.Errorf("metrics-username and metrics-password must be set when metrics-protected is enabled")
 	}
 	return &cfg, nil
 }

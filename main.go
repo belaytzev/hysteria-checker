@@ -53,16 +53,18 @@ func run(ctx context.Context, args []string) error {
 
 	// Initialize proxy checker
 	var opts []checker.ProxyCheckerOption
-	opts = append(opts, checker.WithCheckMethod(cfg.CheckMethod))
+	checkMethod := cfg.CheckMethod
 	if cfg.CheckMethod == "ip" {
 		hostIP, err := checker.DetectHostIP(cfg.CheckURL, cfg.CheckTimeout)
 		if err != nil {
 			slog.Warn("failed to detect host IP, falling back to status-only checks", "error", err)
+			checkMethod = "status"
 		} else {
 			slog.Info("detected host IP", "ip", hostIP)
 			opts = append(opts, checker.WithHostIP(hostIP))
 		}
 	}
+	opts = append(opts, checker.WithCheckMethod(checkMethod))
 	pc := checker.NewProxyChecker(
 		proxies,
 		&checker.Hysteria1Connector{},
