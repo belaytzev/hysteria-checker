@@ -7,6 +7,7 @@ Inspired by [xray-checker](https://github.com/kutovoys/xray-checker).
 ## Features
 
 - Hysteria v1 (`hysteria://`) and v2 (`hysteria2://`, `hy2://`) protocol support
+- Port hopping support for Hysteria v2 (comma/range port notation, e.g. `443,5000-6000`)
 - Subscription URL fetching with base64 decoding
 - Direct share link input alongside subscription URLs
 - Two check methods: IP verification and HTTP status check
@@ -115,6 +116,16 @@ hysteria2://[auth@]hostname[:port]/?insecure=1&obfs=salamander&obfs-password=gaw
 ```
 
 The `hy2://` scheme is also supported.
+
+#### Port hopping
+
+Hysteria v2 supports port hopping as an anti-censorship measure. The port field accepts comma-separated ports and ranges:
+
+```
+hysteria2://auth@hostname:443,5000-6000/?insecure=1&obfs=salamander&obfs-password=pw
+```
+
+Servers with port hopping addresses in subscription URLs are handled automatically.
 
 ## License
 

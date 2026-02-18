@@ -194,26 +194,22 @@ func TestIsPlainPort(t *testing.T) {
 	}
 }
 
-func TestPortHopConnFactory_ImplementsConnFactory(t *testing.T) {
-	// Compile-time check: portHopConnFactory must implement client.ConnFactory.
-	var _ interface {
-		New(net.Addr) (net.PacketConn, error)
-	} = &portHopConnFactory{}
-}
-
 func TestPortHopConnFactory_New_PlainUDP(t *testing.T) {
 	addr, err := resolveTestHopAddr("127.0.0.1:10000,10001")
 	if err != nil {
 		t.Skipf("resolving hop addr: %v", err)
 	}
-	f := &portHopConnFactory{addr: addr}
-	conn, err := f.New(nil)
+	f := &portHopConnFactory{}
+	conn, err := f.New(addr)
 	if err != nil {
 		t.Fatalf("portHopConnFactory.New returned error: %v", err)
 	}
 	defer conn.Close()
-	if conn == nil {
-		t.Fatal("expected non-nil PacketConn")
+
+	// Verify the connection is writable (functional, not just non-nil).
+	_, writeErr := conn.WriteTo([]byte("test"), addr)
+	if writeErr != nil {
+		t.Errorf("expected writable PacketConn, got write error: %v", writeErr)
 	}
 }
 
@@ -226,14 +222,17 @@ func TestPortHopConnFactory_New_WithObfs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("creating obfuscator: %v", err)
 	}
-	f := &portHopConnFactory{addr: addr, obfuscator: obfuscator}
-	conn, err := f.New(nil)
+	f := &portHopConnFactory{obfuscator: obfuscator}
+	conn, err := f.New(addr)
 	if err != nil {
 		t.Fatalf("portHopConnFactory.New with obfs returned error: %v", err)
 	}
 	defer conn.Close()
-	if conn == nil {
-		t.Fatal("expected non-nil PacketConn")
+
+	// Verify that obfuscation wrapping was applied: the returned PacketConn
+	// must not be a plain *net.UDPConn (obfs.WrapPacketConn returns a different type).
+	if _, isPlain := conn.(*net.UDPConn); isPlain {
+		t.Error("expected obfuscated PacketConn, got plain *net.UDPConn; obfuscator not applied")
 	}
 }
 
@@ -285,9 +284,9 @@ func TestHysteria2Connector_PortHoppingAddress(t *testing.T) {
 		Auth:     "testauth",
 		Insecure: true,
 	})
-	// We expect an error (no server is running), but it must NOT be an
-	// "invalid port" or "failed to resolve server address" error — those
-	// would indicate we fell through to net.ResolveUDPAddr.
+	// We expect an error (no server is running). Verify it comes from the
+	// hysteria client connection attempt, not from address parsing/resolution.
+	// Errors at resolution indicate the wrong code path was taken.
 	if err == nil {
 		t.Fatal("expected error connecting to non-existent server")
 	}
@@ -296,6 +295,27 @@ func TestHysteria2Connector_PortHoppingAddress(t *testing.T) {
 	}
 	if strings.Contains(err.Error(), "failed to resolve server address") {
 		t.Errorf("Connect() failed at address resolution instead of using udphop; got: %v", err)
+	}
+	// Positive assertion: error must come from the hysteria2 connection phase.
+	if !strings.Contains(err.Error(), "failed to connect to hysteria2 server") {
+		t.Errorf("expected connection-phase error, got: %v", err)
+	}
+}
+
+func TestHysteria2Connector_HopAddressResolutionFailure(t *testing.T) {
+	// Verify that a malformed hop spec (SplitHostPort succeeds but ResolveUDPHopAddr fails)
+	// returns the expected "failed to resolve hop server address" error.
+	connector := &Hysteria2Connector{}
+
+	_, err := connector.Connect(models.ProxyConfig{
+		Version: 2,
+		Server:  "127.0.0.1:abc-xyz", // isPlainPort("abc-xyz")==false, udphop resolve will fail
+	})
+	if err == nil {
+		t.Fatal("expected error for malformed hop address")
+	}
+	if !strings.Contains(err.Error(), "failed to resolve hop server address") {
+		t.Errorf("expected hop resolution error, got: %v", err)
 	}
 }
 
