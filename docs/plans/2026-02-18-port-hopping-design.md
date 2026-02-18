@@ -117,6 +117,6 @@ The `portHopConnFactory` ignores the `addr` argument passed by the library (it u
 
 ### Task 3: Update `Connect()` to use port hopping
 
-- [ ] Add `TestHysteria2Connector_PortHoppingAddress` test to `checker/checker_test.go`
-- [ ] Rewrite `Connect()` in `checker/hysteria2.go` to use `isPlainPort`/`portHopConnFactory`
-- [ ] All tests pass
+- [x] Add `TestHysteria2Connector_PortHoppingAddress` test to `checker/checker_test.go`
+- [x] Rewrite `Connect()` in `checker/hysteria2.go` to use `isPlainPort`/`portHopConnFactory`
+- [x] All tests pass

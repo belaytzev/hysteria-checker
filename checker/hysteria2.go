@@ -72,14 +72,26 @@ func (h *hysteria2Client) Close() error {
 }
 
 func (c *Hysteria2Connector) Connect(cfg models.ProxyConfig) (ProxyClient, error) {
-	host, _, err := net.SplitHostPort(cfg.Server)
+	host, portStr, err := net.SplitHostPort(cfg.Server)
 	if err != nil {
 		return nil, fmt.Errorf("invalid server address %q: %w", cfg.Server, err)
 	}
 
-	serverAddr, err := net.ResolveUDPAddr("udp", cfg.Server)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve server address: %w", err)
+	isHopping := !isPlainPort(portStr)
+
+	var serverAddr net.Addr
+	if isHopping {
+		hopAddr, err := udphop.ResolveUDPHopAddr(cfg.Server)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve hop server address: %w", err)
+		}
+		serverAddr = hopAddr
+	} else {
+		udpAddr, err := net.ResolveUDPAddr("udp", cfg.Server)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve server address: %w", err)
+		}
+		serverAddr = udpAddr
 	}
 
 	clientCfg := &client.Config{
@@ -121,11 +133,21 @@ func (c *Hysteria2Connector) Connect(cfg models.ProxyConfig) (ProxyClient, error
 	}
 
 	// Salamander obfuscation
+	var obfuscator obfs.Obfuscator
 	if strings.EqualFold(cfg.Obfs, "salamander") && cfg.ObfsParam != "" {
-		obfuscator, err := obfs.NewSalamanderObfuscator([]byte(cfg.ObfsParam))
+		obfuscator, err = obfs.NewSalamanderObfuscator([]byte(cfg.ObfsParam))
 		if err != nil {
 			return nil, fmt.Errorf("failed to create salamander obfuscator: %w", err)
 		}
+	}
+
+	// Select ConnFactory based on hopping and obfuscation
+	if isHopping {
+		clientCfg.ConnFactory = &portHopConnFactory{
+			addr:       serverAddr.(*udphop.UDPHopAddr),
+			obfuscator: obfuscator,
+		}
+	} else if obfuscator != nil {
 		clientCfg.ConnFactory = &obfsConnFactory{obfuscator: obfuscator}
 	}
 

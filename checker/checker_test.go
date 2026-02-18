@@ -272,6 +272,33 @@ func TestHysteria2Connector_InvalidServer(t *testing.T) {
 	}
 }
 
+func TestHysteria2Connector_PortHoppingAddress(t *testing.T) {
+	// Verify that Connect() with a port-hopping server address fails at the
+	// network level (client.NewClient), not at address parsing. This confirms
+	// that isPlainPort detection and udphop.ResolveUDPHopAddr are used instead
+	// of net.ResolveUDPAddr (which would fail immediately with "invalid port").
+	connector := &Hysteria2Connector{}
+
+	_, err := connector.Connect(models.ProxyConfig{
+		Version:  2,
+		Server:   "127.0.0.1:443,5000-6000",
+		Auth:     "testauth",
+		Insecure: true,
+	})
+	// We expect an error (no server is running), but it must NOT be an
+	// "invalid port" or "failed to resolve server address" error — those
+	// would indicate we fell through to net.ResolveUDPAddr.
+	if err == nil {
+		t.Fatal("expected error connecting to non-existent server")
+	}
+	if strings.Contains(err.Error(), "invalid port") {
+		t.Errorf("Connect() used net.ResolveUDPAddr for port-hopping address; got: %v", err)
+	}
+	if strings.Contains(err.Error(), "failed to resolve server address") {
+		t.Errorf("Connect() failed at address resolution instead of using udphop; got: %v", err)
+	}
+}
+
 func TestConnectorInterface(t *testing.T) {
 	// Verify Hysteria2Connector implements Connector
 	var _ Connector = &Hysteria2Connector{}
