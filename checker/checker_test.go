@@ -156,6 +156,32 @@ func TestCheckViaProxy_DefaultPorts(t *testing.T) {
 	}
 }
 
+func TestIsPlainPort(t *testing.T) {
+	tests := []struct {
+		input string
+		plain bool
+	}{
+		{"443", true},
+		{"8080", true},
+		{"0", true},
+		{"65535", true},
+		{"443,8000-9000", false},
+		{"5000-6000", false},
+		{"443,444", false},
+		{"", false},
+		{"abc", false},
+		{"65536", false}, // out of uint16 range
+	}
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			got := isPlainPort(tt.input)
+			if got != tt.plain {
+				t.Errorf("isPlainPort(%q) = %v, want %v", tt.input, got, tt.plain)
+			}
+		})
+	}
+}
+
 func TestNormalizeCertHash(t *testing.T) {
 	tests := []struct {
 		input    string

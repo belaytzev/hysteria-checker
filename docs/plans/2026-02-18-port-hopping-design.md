@@ -100,3 +100,23 @@ The `portHopConnFactory` ignores the `addr` argument passed by the library (it u
 - Unit test for `isPlainPort` helper with plain ports, ranges, and comma specs.
 - Unit/mock test verifying `Connect()` selects the correct ConnFactory for each of the four combinations.
 - Existing tests must continue to pass.
+
+## Implementation Tasks
+
+### Task 1: `isPlainPort` helper
+
+- [x] Add `TestIsPlainPort` test to `checker/checker_test.go`
+- [x] Add `isPlainPort` function to `checker/hysteria2.go` (with `strconv` import)
+- [x] All tests pass
+
+### Task 2: `portHopConnFactory`
+
+- [ ] Add `TestPortHopConnFactory_ImplementsConnFactory`, `TestPortHopConnFactory_New_PlainUDP`, `TestPortHopConnFactory_New_WithObfs` tests to `checker/checker_test.go`
+- [ ] Add `portHopConnFactory` struct and `New` method to `checker/hysteria2.go` (with `udphop` import)
+- [ ] All tests pass
+
+### Task 3: Update `Connect()` to use port hopping
+
+- [ ] Add `TestHysteria2Connector_PortHoppingAddress` test to `checker/checker_test.go`
+- [ ] Rewrite `Connect()` in `checker/hysteria2.go` to use `isPlainPort`/`portHopConnFactory`
+- [ ] All tests pass

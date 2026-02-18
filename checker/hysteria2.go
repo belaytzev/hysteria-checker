@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -182,6 +183,12 @@ func CheckViaProxy(pc ProxyClient, checkURL string, timeout time.Duration) (aliv
 	}
 
 	return false, latency, bodyStr, fmt.Errorf("HTTP status %d", resp.StatusCode)
+}
+
+// isPlainPort reports whether s is a plain decimal port number in [0, 65535].
+func isPlainPort(s string) bool {
+	_, err := strconv.ParseUint(s, 10, 16)
+	return err == nil
 }
 
 // normalizeCertHash removes colons and hyphens from a certificate hash string
