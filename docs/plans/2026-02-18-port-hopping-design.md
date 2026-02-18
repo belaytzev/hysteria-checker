@@ -111,9 +111,9 @@ The `portHopConnFactory` ignores the `addr` argument passed by the library (it u
 
 ### Task 2: `portHopConnFactory`
 
-- [ ] Add `TestPortHopConnFactory_ImplementsConnFactory`, `TestPortHopConnFactory_New_PlainUDP`, `TestPortHopConnFactory_New_WithObfs` tests to `checker/checker_test.go`
-- [ ] Add `portHopConnFactory` struct and `New` method to `checker/hysteria2.go` (with `udphop` import)
-- [ ] All tests pass
+- [x] Add `TestPortHopConnFactory_ImplementsConnFactory`, `TestPortHopConnFactory_New_PlainUDP`, `TestPortHopConnFactory_New_WithObfs` tests to `checker/checker_test.go`
+- [x] Add `portHopConnFactory` struct and `New` method to `checker/hysteria2.go` (with `udphop` import)
+- [x] All tests pass
 
 ### Task 3: Update `Connect()` to use port hopping
 

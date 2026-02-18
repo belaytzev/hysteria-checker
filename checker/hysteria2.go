@@ -17,6 +17,7 @@ import (
 
 	"github.com/apernet/hysteria/core/v2/client"
 	"github.com/apernet/hysteria/extras/v2/obfs"
+	"github.com/apernet/hysteria/extras/v2/transport/udphop"
 	"github.com/belaytzev/hysteria-checker/models"
 )
 
@@ -34,6 +35,27 @@ func (f *obfsConnFactory) New(addr net.Addr) (net.PacketConn, error) {
 		return nil, err
 	}
 	return obfs.WrapPacketConn(conn, f.obfuscator), nil
+}
+
+// portHopConnFactory creates UDP connections for port-hopping servers.
+type portHopConnFactory struct {
+	addr        *udphop.UDPHopAddr
+	hopInterval time.Duration
+	obfuscator  obfs.Obfuscator
+}
+
+func (f *portHopConnFactory) New(_ net.Addr) (net.PacketConn, error) {
+	listenFn := func() (net.PacketConn, error) {
+		conn, err := net.ListenUDP("udp", nil)
+		if err != nil {
+			return nil, err
+		}
+		if f.obfuscator != nil {
+			return obfs.WrapPacketConn(conn, f.obfuscator), nil
+		}
+		return conn, nil
+	}
+	return udphop.NewUDPHopPacketConn(f.addr, f.hopInterval, listenFn)
 }
 
 // hysteria2Client wraps client.Client to implement ProxyClient.

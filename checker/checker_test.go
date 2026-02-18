@@ -9,8 +9,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/apernet/hysteria/extras/v2/obfs"
+	"github.com/apernet/hysteria/extras/v2/transport/udphop"
 	"github.com/belaytzev/hysteria-checker/models"
 )
+
+// resolveTestHopAddr is a test helper that resolves a UDP hop address string.
+func resolveTestHopAddr(addr string) (*udphop.UDPHopAddr, error) {
+	return udphop.ResolveUDPHopAddr(addr)
+}
+
+// newTestSalamanderObfuscator is a test helper that creates a Salamander obfuscator.
+func newTestSalamanderObfuscator(password string) (obfs.Obfuscator, error) {
+	return obfs.NewSalamanderObfuscator([]byte(password))
+}
 
 // mockProxyClient is a mock implementation of ProxyClient for testing.
 type mockProxyClient struct {
@@ -179,6 +191,49 @@ func TestIsPlainPort(t *testing.T) {
 				t.Errorf("isPlainPort(%q) = %v, want %v", tt.input, got, tt.plain)
 			}
 		})
+	}
+}
+
+func TestPortHopConnFactory_ImplementsConnFactory(t *testing.T) {
+	// Compile-time check: portHopConnFactory must implement client.ConnFactory.
+	var _ interface {
+		New(net.Addr) (net.PacketConn, error)
+	} = &portHopConnFactory{}
+}
+
+func TestPortHopConnFactory_New_PlainUDP(t *testing.T) {
+	addr, err := resolveTestHopAddr("127.0.0.1:10000,10001")
+	if err != nil {
+		t.Skipf("resolving hop addr: %v", err)
+	}
+	f := &portHopConnFactory{addr: addr}
+	conn, err := f.New(nil)
+	if err != nil {
+		t.Fatalf("portHopConnFactory.New returned error: %v", err)
+	}
+	defer conn.Close()
+	if conn == nil {
+		t.Fatal("expected non-nil PacketConn")
+	}
+}
+
+func TestPortHopConnFactory_New_WithObfs(t *testing.T) {
+	addr, err := resolveTestHopAddr("127.0.0.1:10002,10003")
+	if err != nil {
+		t.Skipf("resolving hop addr: %v", err)
+	}
+	obfuscator, err := newTestSalamanderObfuscator("testpassword")
+	if err != nil {
+		t.Fatalf("creating obfuscator: %v", err)
+	}
+	f := &portHopConnFactory{addr: addr, obfuscator: obfuscator}
+	conn, err := f.New(nil)
+	if err != nil {
+		t.Fatalf("portHopConnFactory.New with obfs returned error: %v", err)
+	}
+	defer conn.Close()
+	if conn == nil {
+		t.Fatal("expected non-nil PacketConn")
 	}
 }
 
