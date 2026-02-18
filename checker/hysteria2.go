@@ -39,12 +39,12 @@ func (f *obfsConnFactory) New(addr net.Addr) (net.PacketConn, error) {
 
 // portHopConnFactory creates UDP connections for port-hopping servers.
 type portHopConnFactory struct {
+	addr       *udphop.UDPHopAddr
 	obfuscator obfs.Obfuscator
 }
 
-func (f *portHopConnFactory) New(addr net.Addr) (net.PacketConn, error) {
-	hopAddr := addr.(*udphop.UDPHopAddr)
-	return udphop.NewUDPHopPacketConn(hopAddr, 0, func() (net.PacketConn, error) {
+func (f *portHopConnFactory) New(_ net.Addr) (net.PacketConn, error) {
+	return udphop.NewUDPHopPacketConn(f.addr, 0, func() (net.PacketConn, error) {
 		conn, err := net.ListenUDP("udp", nil)
 		if err != nil {
 			return nil, err
@@ -141,7 +141,7 @@ func (c *Hysteria2Connector) Connect(cfg models.ProxyConfig) (ProxyClient, error
 
 	// Select ConnFactory based on hopping and obfuscation
 	if isHopping {
-		clientCfg.ConnFactory = &portHopConnFactory{obfuscator: obfuscator}
+		clientCfg.ConnFactory = &portHopConnFactory{addr: serverAddr.(*udphop.UDPHopAddr), obfuscator: obfuscator}
 	} else if obfuscator != nil {
 		clientCfg.ConnFactory = &obfsConnFactory{obfuscator: obfuscator}
 	}
