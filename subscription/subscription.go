@@ -52,7 +52,7 @@ func FetchSubscription(url string, timeout time.Duration) ([]models.ProxyConfig,
 
 	configs, err := parser.ParseLinks(content)
 	if err != nil {
-		return nil, fmt.Errorf("parsing subscription content: %w", err)
+		return configs, fmt.Errorf("parsing subscription content: %w", err)
 	}
 
 	return configs, nil

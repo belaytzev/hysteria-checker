@@ -460,8 +460,8 @@ func TestParseLinks_AllInvalid(t *testing.T) {
 func TestParseLinks_PartiallyValid(t *testing.T) {
 	input := "hysteria://server.com:443?auth=a#ok\nhttps://bad.link"
 	configs, err := ParseLinks(input)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+	if err == nil {
+		t.Error("expected error for partially valid input")
 	}
 	if len(configs) != 1 {
 		t.Fatalf("got %d configs, want 1", len(configs))

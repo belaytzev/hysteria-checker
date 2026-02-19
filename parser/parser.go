@@ -32,6 +32,10 @@ func ParseLinks(input string) ([]models.ProxyConfig, error) {
 		return nil, fmt.Errorf("no valid links found: %s", strings.Join(errs, "; "))
 	}
 
+	if len(errs) > 0 {
+		return configs, fmt.Errorf("parse errors: %s", strings.Join(errs, "; "))
+	}
+
 	return configs, nil
 }
 
