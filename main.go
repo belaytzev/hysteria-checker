@@ -133,12 +133,12 @@ func run(ctx context.Context, args []string) error {
 			slog.Debug("refreshing subscriptions")
 			newProxies, err := subscription.FetchAll(cfg.SubscriptionURL, cfg.CheckTimeout)
 			if err != nil {
-				slog.Warn("subscription refresh failed", "error", err)
+				slog.Warn("subscription refresh errors", "error", err)
 			}
-			if err == nil && len(newProxies) > 0 {
+			if len(newProxies) > 0 {
 				pc.UpdateProxies(newProxies)
 				slog.Info("subscriptions refreshed", "proxies", len(newProxies))
-			} else if err == nil && len(newProxies) == 0 {
+			} else if err == nil {
 				slog.Warn("subscription refresh returned empty list, keeping existing proxies")
 			}
 
