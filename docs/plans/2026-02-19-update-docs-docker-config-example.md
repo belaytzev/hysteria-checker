@@ -20,7 +20,7 @@ Update docker-compose.yml to include all configuration options as commented-out 
 **Files:**
 - Create: `config.example.env`
 
-- [x] Create `config.example.env` with all 13 config options from `config/config.go`
+- [x] Create `config.example.env` with all 12 config options from `config/config.go`
 - [x] Each option should have a comment with its description and default value
 - [x] Required options (SUBSCRIPTION_URL) uncommented with placeholder
 - [x] Optional options commented out with their defaults shown
@@ -47,6 +47,6 @@ Update docker-compose.yml to include all configuration options as commented-out 
 
 ### Task 4: Verify consistency
 
-- [x] Cross-check all 13 config options appear in: `config.example.env`, `docker-compose.yml`, `README.md` config table
+- [x] Cross-check all 12 config options appear in: `config.example.env`, `docker-compose.yml`, `README.md` config table
 - [x] Verify defaults match between all files and `config/config.go`
 - [x] Run `git diff` to review all changes for correctness
