@@ -99,7 +99,6 @@ func FetchAll(urls []string, timeout time.Duration) ([]models.ProxyConfig, error
 		configs, err := FetchSubscription(url, timeout)
 		if err != nil {
 			errs = append(errs, err.Error())
-			continue
 		}
 
 		for _, cfg := range configs {
