@@ -214,9 +214,10 @@ func TestPortHopConnFactory_New_PlainUDP(t *testing.T) {
 }
 
 func TestPortHopConnFactory_New_WithObfs(t *testing.T) {
-	// Verify obfuscation is applied by calling f.New() with an obfuscator set.
-	// The returned PacketConn must NOT be a plain *net.UDPConn — it should be
-	// the obfuscation wrapper type returned by obfs.WrapPacketConn.
+	// Verify that f.New() succeeds when an obfuscator is set and the returned
+	// conn is writable. The obfuscation wrapping cannot be inspected directly
+	// because udpHopPacketConn hides the inner conn; the write assertion
+	// confirms the factory wiring does not panic or error.
 	addr, err := resolveTestHopAddr("127.0.0.1:10000,10001")
 	if err != nil {
 		t.Skipf("resolving hop addr: %v", err)

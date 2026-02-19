@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"net/url"
 	"testing"
 )
 
@@ -338,12 +339,32 @@ func TestParseHysteria2_extractHopPortSpec_WithHop(t *testing.T) {
 	if got == uri {
 		t.Error("expected modified URI, got original")
 	}
-	// Modified URI should be parseable by url.Parse
-	_, err := ParseHysteria2(uri)
-	if err != nil {
-		t.Errorf("ParseHysteria2 failed for hop URI: %v", err)
+	// Modified URI must be parseable by url.Parse (the whole point of extractHopPortSpec).
+	if _, err := url.Parse(got); err != nil {
+		t.Errorf("modified URI %q not parseable by url.Parse: %v", got, err)
 	}
-	_ = got
+}
+
+func TestParseHysteria2_extractHopPortSpec_IPv6Hop(t *testing.T) {
+	uri := "hysteria2://auth@[::1]:443,5000-6000/?insecure=1"
+	got, hopSpec := extractHopPortSpec(uri)
+	if hopSpec != "443,5000-6000" {
+		t.Errorf("expected hop spec '443,5000-6000', got %q", hopSpec)
+	}
+	if got == uri {
+		t.Error("expected modified URI, got original")
+	}
+	// Modified URI must be parseable and retain the IPv6 host.
+	if _, err := url.Parse(got); err != nil {
+		t.Errorf("modified URI %q not parseable by url.Parse: %v", got, err)
+	}
+	cfg, err := ParseHysteria2(uri)
+	if err != nil {
+		t.Fatalf("ParseHysteria2 failed for IPv6 hop URI: %v", err)
+	}
+	if cfg.Server != "[::1]:443,5000-6000" {
+		t.Errorf("Server = %q, want \"[::1]:443,5000-6000\"", cfg.Server)
+	}
 }
 
 // --- ParseLink Tests ---
