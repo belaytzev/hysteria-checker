@@ -31,10 +31,10 @@ Update docker-compose.yml to include all configuration options as commented-out 
 **Files:**
 - Modify: `docker-compose.yml`
 
-- [ ] Add all missing environment variables as commented-out entries with defaults
-- [ ] Keep SUBSCRIPTION_URL, CHECK_INTERVAL, CHECK_METHOD, LOG_LEVEL uncommented (current state)
-- [ ] Add commented-out entries for: CHECK_URL, CHECK_TIMEOUT, METRICS_HOST, METRICS_PORT, METRICS_PROTECTED, METRICS_USERNAME, METRICS_PASSWORD, WEB_PUBLIC
-- [ ] Add inline comments showing default values for commented-out options
+- [x] Add all missing environment variables as commented-out entries with defaults
+- [x] Keep SUBSCRIPTION_URL, CHECK_INTERVAL, CHECK_METHOD, LOG_LEVEL uncommented (current state)
+- [x] Add commented-out entries for: CHECK_URL, CHECK_TIMEOUT, METRICS_HOST, METRICS_PORT, METRICS_PROTECTED, METRICS_USERNAME, METRICS_PASSWORD, WEB_PUBLIC
+- [x] Add inline comments showing default values for commented-out options
 
 ### Task 3: Update README.md docker-compose example
 
