@@ -122,10 +122,10 @@ func run(ctx context.Context, args []string) error {
 		case <-ctx.Done():
 			slog.Info("shutting down")
 			shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
 			if err := srv.Shutdown(shutdownCtx); err != nil {
 				slog.Error("HTTP server shutdown error", "error", err)
 			}
+			cancel()
 			return nil
 
 		case <-ticker.C:
@@ -135,10 +135,10 @@ func run(ctx context.Context, args []string) error {
 			if err != nil {
 				slog.Warn("subscription refresh failed", "error", err)
 			}
-			if len(newProxies) > 0 {
+			if err == nil && len(newProxies) > 0 {
 				pc.UpdateProxies(newProxies)
 				slog.Info("subscriptions refreshed", "proxies", len(newProxies))
-			} else if err == nil {
+			} else if err == nil && len(newProxies) == 0 {
 				slog.Warn("subscription refresh returned empty list, keeping existing proxies")
 			}
 

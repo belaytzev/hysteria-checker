@@ -35,7 +35,7 @@ func FetchSubscription(url string, timeout time.Duration) ([]models.ProxyConfig,
 	client := &http.Client{Timeout: timeout}
 	resp, err := client.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("fetching subscription from %s failed", redactURL(url))
+		return nil, fmt.Errorf("fetching subscription from %s: %w", redactURL(url), err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 

@@ -14,16 +14,6 @@ import (
 	"github.com/belaytzev/hysteria-checker/models"
 )
 
-// resolveTestHopAddr is a test helper that resolves a UDP hop address string.
-func resolveTestHopAddr(addr string) (*udphop.UDPHopAddr, error) {
-	return udphop.ResolveUDPHopAddr(addr)
-}
-
-// newTestSalamanderObfuscator is a test helper that creates a Salamander obfuscator.
-func newTestSalamanderObfuscator(password string) (obfs.Obfuscator, error) {
-	return obfs.NewSalamanderObfuscator([]byte(password))
-}
-
 // mockProxyClient is a mock implementation of ProxyClient for testing.
 type mockProxyClient struct {
 	tcpFunc   func(addr string) (net.Conn, error)
@@ -195,7 +185,7 @@ func TestIsPlainPort(t *testing.T) {
 }
 
 func TestPortHopConnFactory_New_PlainUDP(t *testing.T) {
-	addr, err := resolveTestHopAddr("127.0.0.1:10000,10001")
+	addr, err := udphop.ResolveUDPHopAddr("127.0.0.1:10000,10001")
 	if err != nil {
 		t.Skipf("resolving hop addr: %v", err)
 	}
@@ -218,11 +208,11 @@ func TestPortHopConnFactory_New_WithObfs(t *testing.T) {
 	// conn is writable. The obfuscation wrapping cannot be inspected directly
 	// because udpHopPacketConn hides the inner conn; the write assertion
 	// confirms the factory wiring does not panic or error.
-	addr, err := resolveTestHopAddr("127.0.0.1:10000,10001")
+	addr, err := udphop.ResolveUDPHopAddr("127.0.0.1:10000,10001")
 	if err != nil {
 		t.Skipf("resolving hop addr: %v", err)
 	}
-	obfuscator, err := newTestSalamanderObfuscator("testpassword")
+	obfuscator, err := obfs.NewSalamanderObfuscator([]byte("testpassword"))
 	if err != nil {
 		t.Fatalf("creating obfuscator: %v", err)
 	}
