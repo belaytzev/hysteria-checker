@@ -12,9 +12,9 @@ This is a documented anti-censorship feature. Real-world subscription URLs frequ
 
 ## What Changes
 
-**Only `checker/hysteria2.go` changes.**
+**Primary change: `checker/hysteria2.go`.**
 
-The parser (`parser/hysteria2.go`) already extracts the full port string correctly via `u.Port()` — for `hostname:443,5000-6000` the port is `"443,5000-6000"`, stored as-is in `cfg.Server`. No model or parser changes needed.
+> **Implementation note:** The original plan stated "No model or parser changes needed," assuming `url.Parse` would pass port-hopping specs through `u.Port()`. This was incorrect. `url.Parse` rejects URIs with hop specs (e.g. `443,5000-6000`) as "invalid port". The parser was fixed by adding `extractHopPortSpec` to `parser/hysteria2.go`, which pre-processes the raw URI to substitute the hop spec with a valid placeholder port before calling `url.Parse`, then restores the original spec when building `cfg.Server`.
 
 ## Design
 
