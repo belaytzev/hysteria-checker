@@ -47,6 +47,6 @@ Update docker-compose.yml to include all configuration options as commented-out 
 
 ### Task 4: Verify consistency
 
-- [ ] Cross-check all 13 config options appear in: `config.example.env`, `docker-compose.yml`, `README.md` config table
-- [ ] Verify defaults match between all files and `config/config.go`
-- [ ] Run `git diff` to review all changes for correctness
+- [x] Cross-check all 13 config options appear in: `config.example.env`, `docker-compose.yml`, `README.md` config table
+- [x] Verify defaults match between all files and `config/config.go`
+- [x] Run `git diff` to review all changes for correctness
