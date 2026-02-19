@@ -41,9 +41,9 @@ Update docker-compose.yml to include all configuration options as commented-out 
 **Files:**
 - Modify: `README.md`
 
-- [ ] Update the Quick Start docker-compose.yml snippet to include all environment variables (commented-out with defaults, matching docker-compose.yml)
-- [ ] Ensure the example stays concise but comprehensive
-- [ ] Add a note pointing users to `config.example.env` for reference
+- [x] Update the Quick Start docker-compose.yml snippet to include all environment variables (commented-out with defaults, matching docker-compose.yml)
+- [x] Ensure the example stays concise but comprehensive
+- [x] Add a note pointing users to `config.example.env` for reference
 
 ### Task 4: Verify consistency
 

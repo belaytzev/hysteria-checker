@@ -35,12 +35,27 @@ services:
     ports:
       - "2112:2112"
     environment:
+      # ── Subscription ──────────────────────────────────────
       - SUBSCRIPTION_URL=https://example.com/subscription
+      # ── Check Settings ────────────────────────────────────
       - CHECK_INTERVAL=300s
       - CHECK_METHOD=ip
+      # - CHECK_URL=https://api.ipify.org          # default: https://api.ipify.org
+      # - CHECK_TIMEOUT=30s                         # default: 30s
+      # ── Metrics / Web Server ──────────────────────────────
+      # - METRICS_HOST=0.0.0.0                      # default: 0.0.0.0
+      # - METRICS_PORT=2112                          # default: 2112
+      # - WEB_PUBLIC=false                           # default: false
+      # ── Authentication ────────────────────────────────────
+      # - METRICS_PROTECTED=false                    # default: false
+      # - METRICS_USERNAME=                          # required if METRICS_PROTECTED=true
+      # - METRICS_PASSWORD=                          # required if METRICS_PROTECTED=true
+      # ── Logging ───────────────────────────────────────────
       - LOG_LEVEL=info
     restart: unless-stopped
 ```
+
+> See [`config.example.env`](config.example.env) for a full reference of all options with descriptions.
 
 ```sh
 docker compose up -d
