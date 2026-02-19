@@ -23,10 +23,18 @@ type ProxyConfig struct {
 	StableID  string // deterministic hash for metrics labels
 }
 
-// GenerateStableID computes a deterministic SHA256 hash from server+auth+version
-// for use as a stable metric label.
+// GenerateStableID computes a deterministic SHA256 hash from key proxy fields
+// (Server, Auth, Version, SNI, Obfs, ObfsParam, Protocol)
+// for use as a stable metric label and deduplication key.
+// Two configs that differ in any of these fields are considered distinct proxies.
 func (p *ProxyConfig) GenerateStableID() {
-	data := fmt.Sprintf("%s|%s|%d", p.Server, p.Auth, p.Version)
+	// Use length-prefixed fields to avoid delimiter collisions when field values
+	// contain the separator character.
+	fields := []string{p.Server, p.Auth, fmt.Sprintf("%d", p.Version), p.SNI, p.Obfs, p.ObfsParam, p.Protocol}
+	var data string
+	for _, f := range fields {
+		data += fmt.Sprintf("%d:%s,", len(f), f)
+	}
 	hash := sha256.Sum256([]byte(data))
 	p.StableID = fmt.Sprintf("%x", hash[:8])
 }

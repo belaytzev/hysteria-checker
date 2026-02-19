@@ -165,6 +165,9 @@ func CheckViaProxy(pc ProxyClient, checkURL string, timeout time.Duration) (aliv
 	if err != nil {
 		return false, 0, "", fmt.Errorf("invalid check URL: %w", err)
 	}
+	if parsed.Scheme != "http" && parsed.Scheme != "https" {
+		return false, 0, "", fmt.Errorf("unsupported check URL scheme %q: only http and https are supported", parsed.Scheme)
+	}
 
 	host := parsed.Hostname()
 	port := parsed.Port()

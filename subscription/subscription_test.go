@@ -197,15 +197,31 @@ func TestFetchAll_PartialFailure(t *testing.T) {
 func TestDecodeContent(t *testing.T) {
 	original := "hysteria2://test@host:443/#Name"
 
+	// Create base64 with line breaks (every 20 chars) to simulate MIME-style wrapping
+	encoded := base64.StdEncoding.EncodeToString([]byte(original))
+	var withLineBreaks string
+	for i := 0; i < len(encoded); i += 20 {
+		end := i + 20
+		if end > len(encoded) {
+			end = len(encoded)
+		}
+		if i > 0 {
+			withLineBreaks += "\n"
+		}
+		withLineBreaks += encoded[i:end]
+	}
+
 	tests := []struct {
 		name    string
 		input   string
 		want    string
 	}{
 		{"plain text passthrough", original, original},
-		{"standard base64", base64.StdEncoding.EncodeToString([]byte(original)), original},
+		{"standard base64", encoded, original},
 		{"raw base64 (no padding)", base64.RawStdEncoding.EncodeToString([]byte(original)), original},
-		{"with whitespace", "  " + base64.StdEncoding.EncodeToString([]byte(original)) + "  ", original},
+		{"with whitespace", "  " + encoded + "  ", original},
+		{"base64 with line breaks", withLineBreaks, original},
+		{"base64 with CRLF", strings.ReplaceAll(withLineBreaks, "\n", "\r\n"), original},
 	}
 
 	for _, tt := range tests {

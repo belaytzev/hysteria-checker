@@ -60,8 +60,12 @@ func FetchSubscription(url string, timeout time.Duration) ([]models.ProxyConfig,
 
 // decodeContent tries to base64-decode the input. If decoding fails or the decoded
 // content doesn't look like hysteria links, returns the original string.
+// It strips internal whitespace before decoding, since base64 subscriptions commonly
+// include line breaks every 76 characters per RFC 2045.
 func decodeContent(s string) string {
 	s = strings.TrimSpace(s)
+	// Strip internal whitespace/newlines that are common in MIME-style base64.
+	cleaned := strings.NewReplacer("\r", "", "\n", "", " ", "", "\t", "").Replace(s)
 	encodings := []*base64.Encoding{
 		base64.StdEncoding,
 		base64.URLEncoding,
@@ -69,7 +73,7 @@ func decodeContent(s string) string {
 		base64.RawURLEncoding,
 	}
 	for _, enc := range encodings {
-		decoded, err := enc.DecodeString(s)
+		decoded, err := enc.DecodeString(cleaned)
 		if err == nil && looksLikeLinks(string(decoded)) {
 			return string(decoded)
 		}

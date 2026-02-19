@@ -130,6 +130,21 @@ func TestCheckViaProxy_InvalidURL(t *testing.T) {
 	}
 }
 
+func TestCheckViaProxy_UnsupportedScheme(t *testing.T) {
+	mc := &mockProxyClient{}
+
+	alive, _, _, err := CheckViaProxy(mc, "ftp://example.com/file", 10*time.Second)
+	if err == nil {
+		t.Fatal("expected error for unsupported scheme")
+	}
+	if alive {
+		t.Error("expected alive=false for unsupported scheme")
+	}
+	if !strings.Contains(err.Error(), "unsupported check URL scheme") {
+		t.Errorf("expected unsupported scheme error, got: %v", err)
+	}
+}
+
 func TestCheckViaProxy_DefaultPorts(t *testing.T) {
 	tests := []struct {
 		url          string
