@@ -12,8 +12,13 @@ import (
 
 // ParseHysteria2 parses a hysteria2:// or hy2:// URI into a ProxyConfig.
 // Format: hysteria2://[auth@]hostname[:port]/?insecure=1&obfs=salamander&obfs-password=gawrgura&pinSHA256=deadbeef&sni=real.example.com
+// Port hopping notation is also supported: hysteria2://auth@hostname:443,5000-6000/?...
 func ParseHysteria2(rawURI string) (*models.ProxyConfig, error) {
-	u, err := url.Parse(rawURI)
+	// url.Parse rejects port hopping specs (e.g. "443,5000-6000") as invalid ports.
+	// Extract the hop spec before parsing, substitute a valid placeholder, then restore.
+	parsedURI, hopPortSpec := extractHopPortSpec(rawURI)
+
+	u, err := url.Parse(parsedURI)
 	if err != nil {
 		return nil, fmt.Errorf("invalid hysteria v2 URI: %w", err)
 	}
@@ -27,7 +32,10 @@ func ParseHysteria2(rawURI string) (*models.ProxyConfig, error) {
 		return nil, fmt.Errorf("missing host in hysteria v2 URI")
 	}
 
-	port := u.Port()
+	port := hopPortSpec
+	if port == "" {
+		port = u.Port()
+	}
 	if port == "" {
 		port = "443"
 	}
@@ -79,4 +87,57 @@ func ParseHysteria2(rawURI string) (*models.ProxyConfig, error) {
 
 	cfg.GenerateStableID()
 	return cfg, nil
+}
+
+// extractHopPortSpec detects a port hopping spec (e.g. "443,5000-6000") in the URI authority
+// and returns a modified URI with a valid placeholder port plus the original hop spec.
+// If no hop spec is found, returns the URI unchanged and an empty spec.
+func extractHopPortSpec(rawURI string) (string, string) {
+	schemeEnd := strings.Index(rawURI, "://")
+	if schemeEnd < 0 {
+		return rawURI, ""
+	}
+	rest := rawURI[schemeEnd+3:]
+
+	// Find end of authority (before the first / ? or #)
+	authEnd := strings.IndexAny(rest, "/?#")
+	var authority, pathAndQuery string
+	if authEnd >= 0 {
+		authority = rest[:authEnd]
+		pathAndQuery = rest[authEnd:]
+	} else {
+		authority = rest
+		pathAndQuery = ""
+	}
+
+	// Find the port spec: the segment after the last colon in the authority,
+	// unless the authority starts with '[' (IPv6 literal).
+	var portSpec string
+	var hostPart string
+	if strings.HasPrefix(authority, "[") {
+		// IPv6 literal: "[::1]:443,5000-6000"
+		bracketEnd := strings.Index(authority, "]")
+		if bracketEnd >= 0 && bracketEnd+1 < len(authority) && authority[bracketEnd+1] == ':' {
+			hostPart = authority[:bracketEnd+2] // includes "]:"
+			portSpec = authority[bracketEnd+2:]
+		} else {
+			return rawURI, ""
+		}
+	} else {
+		lastColon := strings.LastIndex(authority, ":")
+		if lastColon < 0 {
+			return rawURI, ""
+		}
+		hostPart = authority[:lastColon+1] // includes ":"
+		portSpec = authority[lastColon+1:]
+	}
+
+	// Only treat as a hop spec if it contains ',' or '-' (not a plain port number).
+	if !strings.ContainsAny(portSpec, ",-") {
+		return rawURI, ""
+	}
+
+	// Substitute the hop spec with a valid placeholder port for url.Parse.
+	newURI := rawURI[:schemeEnd+3] + hostPart + "443" + pathAndQuery
+	return newURI, portSpec
 }

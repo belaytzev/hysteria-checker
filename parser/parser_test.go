@@ -270,6 +270,82 @@ func TestParseHysteria2_Bandwidth(t *testing.T) {
 	}
 }
 
+func TestParseHysteria2_PortHopping_CommaRange(t *testing.T) {
+	uri := "hysteria2://auth@example.com:443,5000-6000/?insecure=1&obfs=salamander&obfs-password=pw#hop-node"
+	cfg, err := ParseHysteria2(uri)
+	if err != nil {
+		t.Fatalf("unexpected error parsing port-hopping URI: %v", err)
+	}
+	if cfg.Server != "example.com:443,5000-6000" {
+		t.Errorf("server = %q, want %q", cfg.Server, "example.com:443,5000-6000")
+	}
+	if cfg.Auth != "auth" {
+		t.Errorf("auth = %q, want %q", cfg.Auth, "auth")
+	}
+	if !cfg.Insecure {
+		t.Error("insecure = false, want true")
+	}
+	if cfg.Obfs != "salamander" {
+		t.Errorf("obfs = %q, want %q", cfg.Obfs, "salamander")
+	}
+	if cfg.ObfsParam != "pw" {
+		t.Errorf("obfsParam = %q, want %q", cfg.ObfsParam, "pw")
+	}
+	if cfg.Name != "hop-node" {
+		t.Errorf("name = %q, want %q", cfg.Name, "hop-node")
+	}
+}
+
+func TestParseHysteria2_PortHopping_RangeOnly(t *testing.T) {
+	uri := "hysteria2://auth@example.com:5000-6000/"
+	cfg, err := ParseHysteria2(uri)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.Server != "example.com:5000-6000" {
+		t.Errorf("server = %q, want %q", cfg.Server, "example.com:5000-6000")
+	}
+}
+
+func TestParseHysteria2_PortHopping_IPv4(t *testing.T) {
+	uri := "hysteria2://auth@1.2.3.4:443,5000-6000/"
+	cfg, err := ParseHysteria2(uri)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.Server != "1.2.3.4:443,5000-6000" {
+		t.Errorf("server = %q, want %q", cfg.Server, "1.2.3.4:443,5000-6000")
+	}
+}
+
+func TestParseHysteria2_extractHopPortSpec_NoHop(t *testing.T) {
+	uri := "hysteria2://auth@example.com:443/?insecure=1"
+	got, hopSpec := extractHopPortSpec(uri)
+	if got != uri {
+		t.Errorf("expected URI unchanged, got %q", got)
+	}
+	if hopSpec != "" {
+		t.Errorf("expected empty hop spec, got %q", hopSpec)
+	}
+}
+
+func TestParseHysteria2_extractHopPortSpec_WithHop(t *testing.T) {
+	uri := "hysteria2://auth@example.com:443,5000-6000/?insecure=1"
+	got, hopSpec := extractHopPortSpec(uri)
+	if hopSpec != "443,5000-6000" {
+		t.Errorf("expected hop spec '443,5000-6000', got %q", hopSpec)
+	}
+	if got == uri {
+		t.Error("expected modified URI, got original")
+	}
+	// Modified URI should be parseable by url.Parse
+	_, err := ParseHysteria2(uri)
+	if err != nil {
+		t.Errorf("ParseHysteria2 failed for hop URI: %v", err)
+	}
+	_ = got
+}
+
 // --- ParseLink Tests ---
 
 func TestParseLink_Hysteria1(t *testing.T) {

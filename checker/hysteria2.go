@@ -141,7 +141,11 @@ func (c *Hysteria2Connector) Connect(cfg models.ProxyConfig) (ProxyClient, error
 
 	// Select ConnFactory based on hopping and obfuscation
 	if isHopping {
-		clientCfg.ConnFactory = &portHopConnFactory{addr: serverAddr.(*udphop.UDPHopAddr), obfuscator: obfuscator}
+		hopAddr, ok := serverAddr.(*udphop.UDPHopAddr)
+		if !ok {
+			return nil, fmt.Errorf("internal error: expected *udphop.UDPHopAddr, got %T", serverAddr)
+		}
+		clientCfg.ConnFactory = &portHopConnFactory{addr: hopAddr, obfuscator: obfuscator}
 	} else if obfuscator != nil {
 		clientCfg.ConnFactory = &obfsConnFactory{obfuscator: obfuscator}
 	}
