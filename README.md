@@ -71,7 +71,7 @@ All options can be set via CLI flags or environment variables.
 
 | Environment Variable | CLI Flag | Default | Description |
 |---|---|---|---|
-| `SUBSCRIPTION_URL` | `--subscription-url` | _(required)_ | Subscription URLs or direct `hysteria://`/`hysteria2://`/`hy2://` links. Comma-separated or repeated. |
+| `SUBSCRIPTION_URL` | `--subscription-url` | _(empty)_ | Subscription URLs or direct `hysteria://`/`hysteria2://`/`hy2://` links. Comma-separated or repeated. |
 | `CHECK_INTERVAL` | `--check-interval` | `300s` | Interval between health checks. |
 | `CHECK_METHOD` | `--check-method` | `ip` | Check method: `ip` (verify proxy changes IP) or `status` (verify HTTP 2xx). |
 | `CHECK_URL` | `--check-url` | `https://api.ipify.org` | URL used for the check request through each proxy. |
