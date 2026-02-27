@@ -180,3 +180,13 @@ func TestParseNegativeCheckInterval(t *testing.T) {
 		t.Error("expected error for negative check-interval, got nil")
 	}
 }
+
+func TestParseInvalidMetricsPort(t *testing.T) {
+	for _, port := range []string{"0", "-1", "65536", "99999"} {
+		args := []string{"--metrics-port", port}
+		_, err := Parse(args)
+		if err == nil {
+			t.Errorf("expected error for metrics-port=%s, got nil", port)
+		}
+	}
+}

@@ -37,6 +37,9 @@ func Parse(args []string) (*Config, error) {
 	if cfg.CheckInterval <= 0 {
 		return nil, fmt.Errorf("check-interval must be a positive duration, got %v", cfg.CheckInterval)
 	}
+	if cfg.MetricsPort < 1 || cfg.MetricsPort > 65535 {
+		return nil, fmt.Errorf("metrics-port must be between 1 and 65535, got %d", cfg.MetricsPort)
+	}
 	if cfg.MetricsProtected && (cfg.MetricsUsername == "" || cfg.MetricsPassword == "") {
 		return nil, fmt.Errorf("metrics-username and metrics-password must be set when metrics-protected is enabled")
 	}
