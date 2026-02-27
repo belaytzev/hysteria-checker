@@ -5,7 +5,7 @@ services:
       - "2112:2112"
     environment:
       # ── Subscription ──────────────────────────────────────
-      - SUBSCRIPTION_URL=
+      - SUBSCRIPTION_URL=https://example.com/subscription
       # ── Check Settings ────────────────────────────────────
       # - CHECK_INTERVAL=300s                       # default: 300s
       # - CHECK_METHOD=ip                           # default: ip
