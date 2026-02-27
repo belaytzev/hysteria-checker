@@ -164,3 +164,19 @@ func TestParseInvalidLogLevel(t *testing.T) {
 		t.Error("expected error for invalid log level, got nil")
 	}
 }
+
+func TestParseZeroCheckInterval(t *testing.T) {
+	args := []string{"--check-interval", "0s"}
+	_, err := Parse(args)
+	if err == nil {
+		t.Error("expected error for zero check-interval, got nil")
+	}
+}
+
+func TestParseNegativeCheckInterval(t *testing.T) {
+	args := []string{"--check-interval", "-1s"}
+	_, err := Parse(args)
+	if err == nil {
+		t.Error("expected error for negative check-interval, got nil")
+	}
+}

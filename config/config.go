@@ -34,6 +34,9 @@ func Parse(args []string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	if cfg.CheckInterval <= 0 {
+		return nil, fmt.Errorf("check-interval must be a positive duration, got %v", cfg.CheckInterval)
+	}
 	if cfg.MetricsProtected && (cfg.MetricsUsername == "" || cfg.MetricsPassword == "") {
 		return nil, fmt.Errorf("metrics-username and metrics-password must be set when metrics-protected is enabled")
 	}

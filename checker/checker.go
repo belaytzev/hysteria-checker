@@ -211,8 +211,13 @@ func (pc *ProxyChecker) checkOne(proxy models.ProxyConfig) CheckResult {
 }
 
 // DetectHostIP fetches the host's public IP by making a direct HTTP GET to the given URL.
+// Uses a transport with no proxy so that HTTP_PROXY/HTTPS_PROXY env vars do not route
+// the request through a proxy and return the proxy's IP instead of the host's real IP.
 func DetectHostIP(checkURL string, timeout time.Duration) (string, error) {
-	client := &http.Client{Timeout: timeout}
+	client := &http.Client{
+		Timeout:   timeout,
+		Transport: &http.Transport{},
+	}
 	resp, err := client.Get(checkURL)
 	if err != nil {
 		return "", fmt.Errorf("failed to detect host IP: %w", err)
