@@ -38,9 +38,9 @@ services:
       # ── Subscription ──────────────────────────────────────
       - SUBSCRIPTION_URL=https://example.com/subscription
       # ── Check Settings ────────────────────────────────────
-      - CHECK_INTERVAL=300s
-      - CHECK_METHOD=ip
-      # - CHECK_URL=https://api.ipify.org          # default: https://api.ipify.org
+      # - CHECK_INTERVAL=300s                       # default: 300s
+      # - CHECK_METHOD=ip                           # default: ip
+      # - CHECK_URL=https://api.ipify.org           # default: https://api.ipify.org
       # - CHECK_TIMEOUT=30s                         # default: 30s
       # ── Metrics / Web Server ──────────────────────────────
       # - METRICS_HOST=0.0.0.0                      # default: 0.0.0.0
@@ -51,7 +51,7 @@ services:
       # - METRICS_USERNAME=                          # required if METRICS_PROTECTED=true
       # - METRICS_PASSWORD=                          # required if METRICS_PROTECTED=true
       # ── Logging ───────────────────────────────────────────
-      - LOG_LEVEL=info
+      # - LOG_LEVEL=info                            # default: info
     restart: unless-stopped
 ```
 
