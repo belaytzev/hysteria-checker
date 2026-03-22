@@ -1,0 +1,10 @@
+# Cloudflare Pages deployment configuration
+# Deploy: cd site && wrangler pages deploy site
+# The "site" output directory is MkDocs' default build output.
+
+name = "hysteria-checker-docs"
+compatibility_date = "2026-03-22"
+
+# Build settings for Cloudflare Pages
+# Build command: pip install -r requirements.txt && mkdocs build
+# Output directory: site

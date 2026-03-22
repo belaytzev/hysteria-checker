@@ -20,7 +20,7 @@ func ParseHysteria2(rawURI string) (*models.ProxyConfig, error) {
 
 	u, err := url.Parse(parsedURI)
 	if err != nil {
-		return nil, fmt.Errorf("invalid hysteria v2 URI: %w", err)
+		return nil, fmt.Errorf("invalid hysteria v2 URI: %s", redactParseError(err))
 	}
 
 	if u.Scheme != "hysteria2" && u.Scheme != "hy2" {
@@ -124,12 +124,21 @@ func extractHopPortSpec(rawURI string) (string, string) {
 			return rawURI, ""
 		}
 	} else {
-		lastColon := strings.LastIndex(authority, ":")
+		// Strip userinfo before looking for the port colon so that colons
+		// inside passwords (e.g. "user:pass-word@host") are not mistaken
+		// for a port separator.
+		hostAuthority := authority
+		if at := strings.LastIndex(authority, "@"); at >= 0 {
+			hostAuthority = authority[at+1:]
+		}
+		lastColon := strings.LastIndex(hostAuthority, ":")
 		if lastColon < 0 {
 			return rawURI, ""
 		}
-		hostPart = authority[:lastColon+1] // includes ":"
-		portSpec = authority[lastColon+1:]
+		// Compute offset within the full authority string.
+		offset := len(authority) - len(hostAuthority)
+		hostPart = authority[:offset+lastColon+1] // includes ":"
+		portSpec = authority[offset+lastColon+1:]
 	}
 
 	// Only treat as a hop spec if it contains ',' or '-' (not a plain port number).

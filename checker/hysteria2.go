@@ -250,7 +250,7 @@ func CheckViaProxy(pc ProxyClient, checkURL string, timeout time.Duration) (aliv
 	}
 
 	// Read and parse the HTTP response
-	resp, err := http.ReadResponse(bufio.NewReader(conn), nil)
+	resp, err := http.ReadResponse(bufio.NewReader(conn), req)
 	if err != nil {
 		return false, 0, "", fmt.Errorf("read response failed: %w", err)
 	}

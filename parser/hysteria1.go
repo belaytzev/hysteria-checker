@@ -15,7 +15,7 @@ import (
 func ParseHysteria1(rawURI string) (*models.ProxyConfig, error) {
 	u, err := url.Parse(rawURI)
 	if err != nil {
-		return nil, fmt.Errorf("invalid hysteria v1 URI: %w", err)
+		return nil, fmt.Errorf("invalid hysteria v1 URI: %s", redactParseError(err))
 	}
 
 	if u.Scheme != "hysteria" {

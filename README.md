@@ -142,6 +142,16 @@ hysteria2://auth@hostname:443,5000-6000/?insecure=1&obfs=salamander&obfs-passwor
 
 Servers with port hopping addresses in subscription URLs are handled automatically.
 
+## Documentation
+
+Full documentation is available at the [documentation site](https://hysteria-checker.pages.dev) built with MkDocs Material, covering configuration details, API reference, Prometheus metrics, URI formats, and architecture.
+
+To serve locally:
+
+```sh
+cd site && .venv/bin/mkdocs serve
+```
+
 ## License
 
 MIT

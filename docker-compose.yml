@@ -16,7 +16,7 @@ services:
           "--no-verbose",
           "--tries=1",
           "--spider",
-          "http://localhost:2112/api/v1/status",
+          "http://localhost:2112/healthz",
         ]
       interval: 30s
       timeout: 5s

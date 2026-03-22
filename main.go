@@ -106,10 +106,11 @@ func run(ctx context.Context, args []string) error {
 	defer stop()
 
 	// Start HTTP server
+	serverErr := make(chan error, 1)
 	go func() {
 		slog.Info("HTTP server listening", "addr", addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			slog.Error("HTTP server error", "error", err)
+			serverErr <- err
 		}
 	}()
 
@@ -119,6 +120,9 @@ func run(ctx context.Context, args []string) error {
 
 	for {
 		select {
+		case err := <-serverErr:
+			return fmt.Errorf("HTTP server failed: %w", err)
+
 		case <-ctx.Done():
 			slog.Info("shutting down")
 			shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -133,7 +137,7 @@ func run(ctx context.Context, args []string) error {
 			slog.Debug("refreshing subscriptions")
 			newProxies, err := subscription.FetchAll(cfg.SubscriptionURL, cfg.CheckTimeout)
 			if err != nil {
-				slog.Warn("subscription refresh errors", "error", err)
+				slog.Warn("subscription refresh had errors", "error", err)
 			}
 			if len(newProxies) > 0 {
 				pc.UpdateProxies(newProxies)

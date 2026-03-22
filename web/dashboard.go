@@ -71,10 +71,14 @@ func (h *DashboardHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var latest time.Time
 	for _, p := range proxies {
 		result := results[p.StableID]
+		server := p.Server
+		if h.public {
+			server = "***"
+		}
 		dp := DashboardProxy{
 			Name:    p.Name,
 			Version: fmt.Sprintf("hy%d", p.Version),
-			Server:  p.Server,
+			Server:  server,
 			Alive:   result.Alive,
 		}
 		if result.Alive {

@@ -482,24 +482,42 @@ func TestParseLinks_Empty(t *testing.T) {
 
 func TestStableID_Deterministic(t *testing.T) {
 	uri := "hysteria2://auth@example.com:443/"
-	cfg1, _ := ParseHysteria2(uri)
-	cfg2, _ := ParseHysteria2(uri)
+	cfg1, err := ParseHysteria2(uri)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg2, err := ParseHysteria2(uri)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if cfg1.StableID != cfg2.StableID {
 		t.Errorf("stableID not deterministic: %q != %q", cfg1.StableID, cfg2.StableID)
 	}
 }
 
 func TestStableID_DifferentForDifferentServers(t *testing.T) {
-	cfg1, _ := ParseHysteria2("hysteria2://auth@server1.com:443/")
-	cfg2, _ := ParseHysteria2("hysteria2://auth@server2.com:443/")
+	cfg1, err := ParseHysteria2("hysteria2://auth@server1.com:443/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg2, err := ParseHysteria2("hysteria2://auth@server2.com:443/")
+	if err != nil {
+		t.Fatal(err)
+	}
 	if cfg1.StableID == cfg2.StableID {
 		t.Error("stableID should differ for different servers")
 	}
 }
 
 func TestStableID_DifferentForDifferentVersions(t *testing.T) {
-	cfg1, _ := ParseHysteria1("hysteria://example.com:443?auth=a")
-	cfg2, _ := ParseHysteria2("hysteria2://a@example.com:443/")
+	cfg1, err := ParseHysteria1("hysteria://example.com:443?auth=a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg2, err := ParseHysteria2("hysteria2://a@example.com:443/")
+	if err != nil {
+		t.Fatal(err)
+	}
 	if cfg1.StableID == cfg2.StableID {
 		t.Error("stableID should differ for different versions")
 	}

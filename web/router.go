@@ -29,11 +29,17 @@ func NewRouter(cfg RouterConfig) *http.ServeMux {
 		refreshSec = 300
 	}
 	dashboard := NewDashboardHandler(cfg.Checker, refreshSec, cfg.RedactSensitive)
-	if cfg.Protected && !cfg.RedactSensitive {
+	if cfg.Protected {
 		mux.Handle("/", middleware.BasicAuth(dashboard, cfg.Username, cfg.Password))
 	} else {
 		mux.Handle("/", dashboard)
 	}
+
+	// Health endpoint (always unauthenticated)
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ok"))
+	})
 
 	// Metrics endpoint
 	if cfg.MetricsHandler != nil {
