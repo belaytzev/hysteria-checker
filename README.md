@@ -1,28 +1,44 @@
-# Hysteria Checker
+# 🔍 Hysteria Checker
 
-Health checker for [Hysteria](https://github.com/apernet/hysteria) proxy servers (v1 and v2). Reads proxy configurations from subscription URLs or direct share links, checks connectivity through each server, and exposes results via Prometheus metrics, a REST API, and a web dashboard.
+> 🏥 Health checker for [Hysteria](https://github.com/apernet/hysteria) proxy servers (v1 & v2)
 
-Inspired by [xray-checker](https://github.com/kutovoys/xray-checker).
+Reads proxy configurations from subscription URLs or direct share links, checks connectivity through each server, and exposes results via Prometheus metrics, a REST API, and a web dashboard.
 
-## Features
+💡 Inspired by [xray-checker](https://github.com/kutovoys/xray-checker).
 
-- Hysteria v1 (`hysteria://`) and v2 (`hysteria2://`, `hy2://`) protocol support
-- Port hopping support for Hysteria v2 (comma/range port notation, e.g. `443,5000-6000`)
-- Subscription URL fetching with base64 decoding
-- Direct share link input alongside subscription URLs
-- Two check methods: IP verification and HTTP status check
-- Prometheus metrics with per-proxy status and latency gauges
-- REST API for programmatic access
-- Web dashboard with auto-refresh, dark/light theme toggle, responsive design
-- Optional Basic Auth protection for metrics and API
-- Public mode to hide sensitive server details on the dashboard
-- Periodic health checks and subscription refresh
-- Graceful shutdown on SIGTERM/SIGINT
-- Docker-first deployment
+---
 
-## Quick Start
+## ✨ Features
 
-### Docker Compose (recommended)
+### 🌐 Protocol Support
+- Hysteria v1 (`hysteria://`) and v2 (`hysteria2://`, `hy2://`)
+- 🔀 Port hopping for Hysteria v2 (comma/range notation, e.g. `443,5000-6000`)
+
+### 📡 Input Sources
+- 📋 Subscription URL fetching with base64 decoding
+- 🔗 Direct share link input alongside subscription URLs
+
+### 🩺 Health Checking
+- Two check methods: 🌍 IP verification and ✅ HTTP status check
+- ⏱️ Periodic health checks with configurable intervals
+- 🔄 Automatic subscription refresh
+
+### 📊 Monitoring & Visualization
+- 📈 Prometheus metrics with per-proxy status and latency gauges
+- 🖥️ Web dashboard with auto-refresh, dark/light theme toggle, responsive design
+- 🔌 REST API for programmatic access
+
+### 🔒 Security & Operations
+- 🔐 Optional Basic Auth protection for metrics and API
+- 👁️ Public mode to hide sensitive server details on the dashboard
+- 🛑 Graceful shutdown on SIGTERM/SIGINT
+- 🐳 Docker-first deployment
+
+---
+
+## 🚀 Quick Start
+
+### 🐳 Docker Compose (recommended)
 
 Create a `docker-compose.yml`:
 
@@ -55,13 +71,13 @@ services:
     restart: unless-stopped
 ```
 
-> See [`config.example.env`](config.example.env) for a full reference of all options with descriptions.
+> 📄 See [`config.example.env`](config.example.env) for a full reference of all options with descriptions.
 
 ```sh
 docker compose up -d
 ```
 
-### Docker
+### 🐳 Docker
 
 ```sh
 docker build -t hysteria-checker .
@@ -71,7 +87,7 @@ docker run -d \
   hysteria-checker
 ```
 
-### From Source
+### 🛠️ From Source
 
 Requires Go 1.25+.
 
@@ -80,43 +96,58 @@ go build -o hysteria-checker .
 ./hysteria-checker --subscription-url "hysteria2://auth@host:443/?insecure=1&sni=example.com"
 ```
 
-## Configuration
+---
+
+## ⚙️ Configuration
 
 All options can be set via CLI flags or environment variables.
 
 | Environment Variable | CLI Flag | Default | Description |
 |---|---|---|---|
 | `SUBSCRIPTION_URL` | `--subscription-url` | _(empty)_ | Subscription URLs or direct `hysteria://`/`hysteria2://`/`hy2://` links. Comma-separated or repeated. |
-| `CHECK_INTERVAL` | `--check-interval` | `300s` | Interval between health checks. |
-| `CHECK_METHOD` | `--check-method` | `ip` | Check method: `ip` (verify proxy changes IP) or `status` (verify HTTP 2xx). |
-| `CHECK_URL` | `--check-url` | `https://api.ipify.org` | URL used for the check request through each proxy. |
-| `CHECK_TIMEOUT` | `--check-timeout` | `30s` | Timeout for each individual proxy check. |
-| `METRICS_HOST` | `--metrics-host` | `0.0.0.0` | Host to bind the HTTP server. |
-| `METRICS_PORT` | `--metrics-port` | `2112` | Port for the HTTP server. |
-| `METRICS_PROTECTED` | `--metrics-protected` | `false` | Enable Basic Auth for metrics/API endpoints. |
-| `METRICS_USERNAME` | `--metrics-username` | _(empty)_ | Basic Auth username. |
-| `METRICS_PASSWORD` | `--metrics-password` | _(empty)_ | Basic Auth password. |
-| `WEB_PUBLIC` | `--web-public` | `false` | Hide sensitive server details on dashboard for unauthenticated users. |
-| `LOG_LEVEL` | `--log-level` | `info` | Log level: `debug`, `info`, `warn`, `error`. |
+| `CHECK_INTERVAL` | `--check-interval` | `300s` | Interval between health checks |
+| `CHECK_METHOD` | `--check-method` | `ip` | Check method: `ip` (verify proxy changes IP) or `status` (verify HTTP 2xx) |
+| `CHECK_URL` | `--check-url` | `https://api.ipify.org` | URL used for the check request through each proxy |
+| `CHECK_TIMEOUT` | `--check-timeout` | `30s` | Timeout for each individual proxy check |
+| `METRICS_HOST` | `--metrics-host` | `0.0.0.0` | Host to bind the HTTP server |
+| `METRICS_PORT` | `--metrics-port` | `2112` | Port for the HTTP server |
+| `METRICS_PROTECTED` | `--metrics-protected` | `false` | Enable Basic Auth for metrics/API endpoints |
+| `METRICS_USERNAME` | `--metrics-username` | _(empty)_ | Basic Auth username |
+| `METRICS_PASSWORD` | `--metrics-password` | _(empty)_ | Basic Auth password |
+| `WEB_PUBLIC` | `--web-public` | `false` | Hide sensitive server details on dashboard |
+| `LOG_LEVEL` | `--log-level` | `info` | Log level: `debug`, `info`, `warn`, `error` |
 
-## Endpoints
+---
+
+## 🔗 Endpoints
 
 | Path | Description |
 |---|---|
-| `/` | Web dashboard |
-| `/metrics` | Prometheus metrics |
-| `/api/v1/proxies` | List all proxies with status and latency |
-| `/api/v1/proxies/{id}` | Single proxy by stable ID |
-| `/api/v1/status` | Summary: total, up, and down counts |
+| `/` | 🖥️ Web dashboard |
+| `/metrics` | 📈 Prometheus metrics |
+| `/api/v1/proxies` | 📋 List all proxies with status and latency |
+| `/api/v1/proxies/{id}` | 🔎 Single proxy by stable ID |
+| `/api/v1/status` | 📊 Summary: total, up, and down counts |
 
-## Prometheus Metrics
+---
+
+## 📈 Prometheus Metrics
 
 | Metric | Labels | Description |
 |---|---|---|
 | `hysteria_proxy_status` | `version`, `address`, `name`, `id` | Proxy status: 1 = up, 0 = down |
 | `hysteria_proxy_latency_ms` | `version`, `address`, `name`, `id` | Latency in milliseconds (0 if down) |
 
-## URI Formats
+### 📝 Example Grafana Query
+
+```promql
+# Show all proxies that are currently down
+hysteria_proxy_status == 0
+```
+
+---
+
+## 🔗 URI Formats
 
 ### Hysteria v1
 
@@ -132,7 +163,7 @@ hysteria2://[auth@]hostname[:port]/?insecure=1&obfs=salamander&obfs-password=gaw
 
 The `hy2://` scheme is also supported.
 
-#### Port hopping
+#### 🔀 Port Hopping
 
 Hysteria v2 supports port hopping as an anti-censorship measure. The port field accepts comma-separated ports and ranges:
 
@@ -142,7 +173,9 @@ hysteria2://auth@hostname:443,5000-6000/?insecure=1&obfs=salamander&obfs-passwor
 
 Servers with port hopping addresses in subscription URLs are handled automatically.
 
-## Documentation
+---
+
+## 📚 Documentation
 
 Full documentation is available at the [documentation site](https://hysteria-checker.pages.dev) built with MkDocs Material, covering configuration details, API reference, Prometheus metrics, URI formats, and architecture.
 
@@ -152,6 +185,8 @@ To serve locally:
 cd site && .venv/bin/mkdocs serve
 ```
 
-## License
+---
+
+## 📄 License
 
 MIT
