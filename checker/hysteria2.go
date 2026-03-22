@@ -201,10 +201,14 @@ func CheckViaProxy(pc ProxyClient, checkURL string, timeout time.Duration) (aliv
 		conn = tlsConn
 	}
 
-	// Build and send raw HTTP request through the proxied connection
-	reqStr := fmt.Sprintf("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\nUser-Agent: hysteria-checker/1.0\r\n\r\n",
-		parsed.RequestURI(), parsed.Host)
-	if _, err := conn.Write([]byte(reqStr)); err != nil {
+	// Build and send HTTP request through the proxied connection
+	req, err := http.NewRequest(http.MethodGet, checkURL, nil)
+	if err != nil {
+		return false, 0, "", fmt.Errorf("create request failed: %w", err)
+	}
+	req.Header.Set("Connection", "close")
+	req.Header.Set("User-Agent", "hysteria-checker/1.0")
+	if err := req.Write(conn); err != nil {
 		return false, 0, "", fmt.Errorf("write request failed: %w", err)
 	}
 

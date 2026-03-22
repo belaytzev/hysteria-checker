@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"time"
 
 	"github.com/belaytzev/hysteria-checker/checker"
 )
@@ -23,6 +24,7 @@ type DashboardData struct {
 	Down            int
 	RefreshInterval int
 	Public          bool
+	LastUpdated     string
 }
 
 // DashboardProxy represents a single proxy row in the dashboard.
@@ -66,6 +68,7 @@ func (h *DashboardHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Public:          h.public,
 	}
 
+	var latest time.Time
 	for _, p := range proxies {
 		result := results[p.StableID]
 		dp := DashboardProxy{
@@ -77,6 +80,9 @@ func (h *DashboardHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if result.Alive {
 			dp.LatencyMs = float64(result.Latency.Milliseconds())
 		}
+		if result.LastCheck.After(latest) {
+			latest = result.LastCheck
+		}
 		data.Proxies = append(data.Proxies, dp)
 		if result.Alive {
 			data.Up++
@@ -84,6 +90,9 @@ func (h *DashboardHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	data.Total = len(proxies)
 	data.Down = data.Total - data.Up
+	if !latest.IsZero() {
+		data.LastUpdated = latest.Format("15:04:05")
+	}
 
 	var buf bytes.Buffer
 	if err := dashboardTmpl.Execute(&buf, data); err != nil {

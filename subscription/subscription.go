@@ -43,7 +43,7 @@ func FetchSubscription(url string, timeout time.Duration) ([]models.ProxyConfig,
 		return nil, fmt.Errorf("subscription returned status %d", resp.StatusCode)
 	}
 
-	body, err := io.ReadAll(io.LimitReader(resp.Body, 10*1024*1024))
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 512*1024))
 	if err != nil {
 		return nil, fmt.Errorf("reading subscription body: %w", err)
 	}

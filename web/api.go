@@ -33,21 +33,26 @@ type StatusResponse struct {
 // APIHandler serves the REST API endpoints.
 type APIHandler struct {
 	checker *checker.ProxyChecker
+	redact  bool
 }
 
 // NewAPIHandler creates a new APIHandler.
-func NewAPIHandler(pc *checker.ProxyChecker) *APIHandler {
-	return &APIHandler{checker: pc}
+func NewAPIHandler(pc *checker.ProxyChecker, redact bool) *APIHandler {
+	return &APIHandler{checker: pc, redact: redact}
 }
 
 // ListProxies handles GET /api/v1/proxies.
 func (h *APIHandler) ListProxies(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "Method Not Allowed"})
+		return
+	}
 	proxies := h.checker.Proxies()
 	results := h.checker.Results()
 
 	resp := make([]ProxyResponse, 0, len(proxies))
 	for _, p := range proxies {
-		resp = append(resp, buildProxyResponse(p, results[p.StableID]))
+		resp = append(resp, buildProxyResponse(p, results[p.StableID], h.redact))
 	}
 
 	writeJSON(w, http.StatusOK, resp)
@@ -55,6 +60,10 @@ func (h *APIHandler) ListProxies(w http.ResponseWriter, r *http.Request) {
 
 // GetProxy handles GET /api/v1/proxies/{id}.
 func (h *APIHandler) GetProxy(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "Method Not Allowed"})
+		return
+	}
 	id := extractProxyID(r.URL.Path)
 	if id == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "missing proxy id"})
@@ -66,7 +75,7 @@ func (h *APIHandler) GetProxy(w http.ResponseWriter, r *http.Request) {
 
 	for _, p := range proxies {
 		if p.StableID == id {
-			writeJSON(w, http.StatusOK, buildProxyResponse(p, results[p.StableID]))
+			writeJSON(w, http.StatusOK, buildProxyResponse(p, results[p.StableID], h.redact))
 			return
 		}
 	}
@@ -76,6 +85,10 @@ func (h *APIHandler) GetProxy(w http.ResponseWriter, r *http.Request) {
 
 // Status handles GET /api/v1/status.
 func (h *APIHandler) Status(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "Method Not Allowed"})
+		return
+	}
 	proxies := h.checker.Proxies()
 	results := h.checker.Results()
 
@@ -93,13 +106,16 @@ func (h *APIHandler) Status(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func buildProxyResponse(p models.ProxyConfig, result checker.CheckResult) ProxyResponse {
+func buildProxyResponse(p models.ProxyConfig, result checker.CheckResult, redact bool) ProxyResponse {
 	resp := ProxyResponse{
 		ID:      p.StableID,
 		Name:    p.Name,
 		Server:  p.Server,
 		Version: fmt.Sprintf("hy%d", p.Version),
 		Alive:   result.Alive,
+	}
+	if redact {
+		resp.Server = "***"
 	}
 	if result.Alive {
 		resp.LatencyMs = float64(result.Latency.Milliseconds())
@@ -108,7 +124,11 @@ func buildProxyResponse(p models.ProxyConfig, result checker.CheckResult) ProxyR
 		resp.LastCheck = result.LastCheck.Format("2006-01-02T15:04:05Z07:00")
 	}
 	if result.Error != "" {
-		resp.Error = result.Error
+		if redact {
+			resp.Error = "check failed"
+		} else {
+			resp.Error = result.Error
+		}
 	}
 	return resp
 }

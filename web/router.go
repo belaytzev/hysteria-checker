@@ -14,22 +14,22 @@ type RouterConfig struct {
 	Protected       bool
 	Username        string
 	Password        string
-	WebPublic       bool
+	RedactSensitive bool
 	RefreshInterval int // dashboard auto-refresh in seconds
 }
 
 // NewRouter creates an http.ServeMux with all API, metrics, and dashboard routes.
 func NewRouter(cfg RouterConfig) *http.ServeMux {
 	mux := http.NewServeMux()
-	api := NewAPIHandler(cfg.Checker)
+	api := NewAPIHandler(cfg.Checker, cfg.RedactSensitive)
 
 	// Dashboard
 	refreshSec := cfg.RefreshInterval
 	if refreshSec <= 0 {
 		refreshSec = 300
 	}
-	dashboard := NewDashboardHandler(cfg.Checker, refreshSec, cfg.WebPublic)
-	if cfg.Protected && !cfg.WebPublic {
+	dashboard := NewDashboardHandler(cfg.Checker, refreshSec, cfg.RedactSensitive)
+	if cfg.Protected && !cfg.RedactSensitive {
 		mux.Handle("/", middleware.BasicAuth(dashboard, cfg.Username, cfg.Password))
 	} else {
 		mux.Handle("/", dashboard)

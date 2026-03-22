@@ -1,6 +1,7 @@
 package checker
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -92,7 +93,7 @@ func TestCheckAll_DispatchesV1AndV2(t *testing.T) {
 	}
 
 	pc := NewProxyChecker(proxies, v1Conn, v2Conn, ts.URL, 10*time.Second)
-	pc.CheckAll()
+	pc.CheckAll(context.Background())
 
 	if v1Calls.Load() != 1 {
 		t.Errorf("expected 1 v1 connect call, got %d", v1Calls.Load())
@@ -133,7 +134,7 @@ func TestCheckAll_ConnectFailure(t *testing.T) {
 	}
 
 	pc := NewProxyChecker(proxies, nil, failConnector, "http://example.com", 10*time.Second)
-	pc.CheckAll()
+	pc.CheckAll(context.Background())
 
 	results := pc.Results()
 	r := results[proxies[0].StableID]
@@ -151,7 +152,7 @@ func TestCheckAll_UnsupportedVersion(t *testing.T) {
 	}
 
 	pc := NewProxyChecker(proxies, nil, nil, "http://example.com", 10*time.Second)
-	pc.CheckAll()
+	pc.CheckAll(context.Background())
 
 	results := pc.Results()
 	r := results[proxies[0].StableID]
@@ -169,7 +170,7 @@ func TestCheckAll_NilConnector(t *testing.T) {
 	}
 
 	pc := NewProxyChecker(proxies, nil, nil, "http://example.com", 10*time.Second)
-	pc.CheckAll()
+	pc.CheckAll(context.Background())
 
 	results := pc.Results()
 	r := results[proxies[0].StableID]
@@ -210,7 +211,7 @@ func TestCheckAll_ConcurrencyLimit(t *testing.T) {
 	pc := NewProxyChecker(proxies, nil, slowConnector, "http://example.com", 10*time.Second,
 		WithConcurrency(3),
 	)
-	pc.CheckAll()
+	pc.CheckAll(context.Background())
 
 	if maxConcurrent.Load() > 3 {
 		t.Errorf("expected max concurrency <= 3, got %d", maxConcurrent.Load())
@@ -230,7 +231,7 @@ func TestUpdateProxies_RemovesStaleResults(t *testing.T) {
 	}
 
 	pc := NewProxyChecker(proxies, nil, failConnector, "http://example.com", 10*time.Second)
-	pc.CheckAll()
+	pc.CheckAll(context.Background())
 
 	if len(pc.Results()) != 2 {
 		t.Fatalf("expected 2 results, got %d", len(pc.Results()))
@@ -281,7 +282,7 @@ func TestResults_ReturnsCopy(t *testing.T) {
 	}
 
 	pc := NewProxyChecker(proxies, nil, failConnector, "http://example.com", 10*time.Second)
-	pc.CheckAll()
+	pc.CheckAll(context.Background())
 
 	r1 := pc.Results()
 	r1[proxies[0].StableID] = CheckResult{Alive: true}
@@ -294,7 +295,7 @@ func TestResults_ReturnsCopy(t *testing.T) {
 
 func TestCheckAll_EmptyProxies(t *testing.T) {
 	pc := NewProxyChecker(nil, nil, nil, "http://example.com", 10*time.Second)
-	pc.CheckAll() // should not panic
+	pc.CheckAll(context.Background()) // should not panic
 	if len(pc.Results()) != 0 {
 		t.Error("expected empty results for empty proxy list")
 	}

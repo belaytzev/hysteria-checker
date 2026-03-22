@@ -32,8 +32,8 @@ func TestParseDefaults(t *testing.T) {
 	if cfg.MetricsProtected {
 		t.Error("MetricsProtected should default to false")
 	}
-	if cfg.WebPublic {
-		t.Error("WebPublic should default to false")
+	if cfg.RedactSensitive {
+		t.Error("RedactSensitive should default to false")
 	}
 	if cfg.LogLevel != "info" {
 		t.Errorf("LogLevel = %q, want %q", cfg.LogLevel, "info")
@@ -94,8 +94,8 @@ func TestParseCLIFlags(t *testing.T) {
 	if cfg.MetricsPassword != "secret" {
 		t.Errorf("MetricsPassword = %q, want %q", cfg.MetricsPassword, "secret")
 	}
-	if !cfg.WebPublic {
-		t.Error("WebPublic should be true")
+	if !cfg.RedactSensitive {
+		t.Error("RedactSensitive should be true")
 	}
 	if cfg.LogLevel != "debug" {
 		t.Errorf("LogLevel = %q, want %q", cfg.LogLevel, "debug")
@@ -178,6 +178,22 @@ func TestParseNegativeCheckInterval(t *testing.T) {
 	_, err := Parse(args)
 	if err == nil {
 		t.Error("expected error for negative check-interval, got nil")
+	}
+}
+
+func TestParseZeroCheckTimeout(t *testing.T) {
+	args := []string{"--check-timeout", "0s"}
+	_, err := Parse(args)
+	if err == nil {
+		t.Error("expected error for zero check-timeout, got nil")
+	}
+}
+
+func TestParseNegativeCheckTimeout(t *testing.T) {
+	args := []string{"--check-timeout", "-1s"}
+	_, err := Parse(args)
+	if err == nil {
+		t.Error("expected error for negative check-timeout, got nil")
 	}
 }
 

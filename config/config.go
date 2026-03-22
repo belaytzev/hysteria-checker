@@ -19,7 +19,7 @@ type Config struct {
 	MetricsProtected bool        `kong:"name='metrics-protected',env='METRICS_PROTECTED',default='false',help='Enable Basic Auth for metrics.'"`
 	MetricsUsername  string       `kong:"name='metrics-username',env='METRICS_USERNAME',help='Basic Auth username for metrics.'"`
 	MetricsPassword  string       `kong:"name='metrics-password',env='METRICS_PASSWORD',help='Basic Auth password for metrics.'"`
-	WebPublic       bool          `kong:"name='web-public',env='WEB_PUBLIC',default='false',help='If true, hide sensitive details on the dashboard for unauthenticated users.'"`
+	RedactSensitive bool          `kong:"name='web-public',env='WEB_PUBLIC',default='false',help='If true, redact sensitive details (server addresses, errors) in the dashboard and API responses.'"`
 	LogLevel        string        `kong:"name='log-level',env='LOG_LEVEL',default='info',enum='debug,info,warn,error',help='Log level.'"`
 }
 
@@ -39,6 +39,9 @@ func Parse(args []string) (*Config, error) {
 	}
 	if cfg.MetricsPort < 1 || cfg.MetricsPort > 65535 {
 		return nil, fmt.Errorf("metrics-port must be between 1 and 65535, got %d", cfg.MetricsPort)
+	}
+	if cfg.CheckTimeout <= 0 {
+		return nil, fmt.Errorf("check-timeout must be a positive duration, got %v", cfg.CheckTimeout)
 	}
 	if cfg.MetricsProtected && (cfg.MetricsUsername == "" || cfg.MetricsPassword == "") {
 		return nil, fmt.Errorf("metrics-username and metrics-password must be set when metrics-protected is enabled")

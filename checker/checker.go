@@ -1,6 +1,7 @@
 package checker
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log/slog"
@@ -124,7 +125,8 @@ func (pc *ProxyChecker) Proxies() []models.ProxyConfig {
 }
 
 // CheckAll checks all proxies concurrently with a semaphore limiting concurrency.
-func (pc *ProxyChecker) CheckAll() {
+// It respects the provided context for cancellation support during graceful shutdown.
+func (pc *ProxyChecker) CheckAll(ctx context.Context) {
 	pc.mu.RLock()
 	proxies := make([]models.ProxyConfig, len(pc.proxies))
 	copy(proxies, pc.proxies)
@@ -134,11 +136,22 @@ func (pc *ProxyChecker) CheckAll() {
 	var wg sync.WaitGroup
 
 	for _, proxy := range proxies {
+		if ctx.Err() != nil {
+			break
+		}
 		wg.Add(1)
-		sem <- struct{}{}
+		select {
+		case sem <- struct{}{}:
+		case <-ctx.Done():
+			wg.Done()
+			continue
+		}
 		go func(p models.ProxyConfig) {
 			defer wg.Done()
 			defer func() { <-sem }()
+			if ctx.Err() != nil {
+				return
+			}
 			result := pc.checkOne(p)
 			pc.mu.Lock()
 			pc.results[p.StableID] = result

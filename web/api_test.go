@@ -32,7 +32,7 @@ func TestListProxies(t *testing.T) {
 	}
 
 	pc := newTestChecker(proxies, results)
-	api := NewAPIHandler(pc)
+	api := NewAPIHandler(pc, false)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/proxies", nil)
 	w := httptest.NewRecorder()
@@ -72,7 +72,7 @@ func TestGetProxy(t *testing.T) {
 	}
 
 	pc := newTestChecker(proxies, results)
-	api := NewAPIHandler(pc)
+	api := NewAPIHandler(pc, false)
 
 	t.Run("found", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/proxies/abc123", nil)
@@ -126,7 +126,7 @@ func TestStatus(t *testing.T) {
 	}
 
 	pc := newTestChecker(proxies, results)
-	api := NewAPIHandler(pc)
+	api := NewAPIHandler(pc, false)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/status", nil)
 	w := httptest.NewRecorder()
@@ -238,7 +238,7 @@ func TestRouterNoAuth(t *testing.T) {
 
 func TestEmptyProxies(t *testing.T) {
 	pc := newTestChecker(nil, nil)
-	api := NewAPIHandler(pc)
+	api := NewAPIHandler(pc, false)
 
 	t.Run("list empty", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/proxies", nil)

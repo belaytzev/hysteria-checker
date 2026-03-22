@@ -76,7 +76,7 @@ func run(ctx context.Context, args []string) error {
 
 	// Run initial check
 	slog.Info("running initial proxy check")
-	pc.CheckAll()
+	pc.CheckAll(ctx)
 	metrics.UpdateMetrics(pc.Results(), pc.Proxies())
 	slog.Info("initial check complete", "proxies", len(proxies))
 
@@ -88,7 +88,7 @@ func run(ctx context.Context, args []string) error {
 		Protected:       cfg.MetricsProtected,
 		Username:        cfg.MetricsUsername,
 		Password:        cfg.MetricsPassword,
-		WebPublic:       cfg.WebPublic,
+		RedactSensitive: cfg.RedactSensitive,
 		RefreshInterval: int(cfg.CheckInterval.Seconds()),
 	})
 
@@ -143,7 +143,7 @@ func run(ctx context.Context, args []string) error {
 			}
 
 			slog.Debug("running scheduled proxy check")
-			pc.CheckAll()
+			pc.CheckAll(ctx)
 			metrics.UpdateMetrics(pc.Results(), pc.Proxies())
 			slog.Debug("scheduled check complete")
 		}
