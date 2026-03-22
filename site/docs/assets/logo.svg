@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Outer circle -->
+  <circle cx="64" cy="64" r="58" fill="none" stroke="#7c4dff" stroke-width="6"/>
+  <!-- Inner geometric hexagon accent -->
+  <polygon points="64,18 97,41 97,87 64,110 31,87 31,41" fill="none" stroke="#7c4dff" stroke-width="3" opacity="0.3"/>
+  <!-- Checkmark / pulse motif in green -->
+  <polyline points="38,68 54,84 90,44" fill="none" stroke="#00c853" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Small pulse tick marks -->
+  <line x1="22" y1="64" x2="32" y2="64" stroke="#7c4dff" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <line x1="96" y1="64" x2="106" y2="64" stroke="#7c4dff" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <line x1="64" y1="22" x2="64" y2="12" stroke="#7c4dff" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <line x1="64" y1="116" x2="64" y2="106" stroke="#7c4dff" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+</svg>

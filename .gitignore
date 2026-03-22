@@ -151,8 +151,8 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
-# mkdocs documentation
-/site
+# mkdocs documentation build output
+site/site/
 
 # mypy
 .mypy_cache/
@@ -205,3 +205,6 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# ralphex progress logs
+progress*.txt

@@ -1,0 +1,25 @@
+services:
+  hysteria-checker:
+    build: .
+    ports:
+      - "2112:2112"
+    # Environment variables from .env file
+    env_file:
+      - .env
+    environment:
+      - LOG_LEVEL=info
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:2112/healthz",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
