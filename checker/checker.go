@@ -1,10 +1,7 @@
 package checker
 
 import (
-<<<<<<< HEAD
 	"context"
-=======
->>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 	"fmt"
 	"io"
 	"log/slog"
@@ -128,12 +125,8 @@ func (pc *ProxyChecker) Proxies() []models.ProxyConfig {
 }
 
 // CheckAll checks all proxies concurrently with a semaphore limiting concurrency.
-<<<<<<< HEAD
 // It respects the provided context for cancellation support during graceful shutdown.
 func (pc *ProxyChecker) CheckAll(ctx context.Context) {
-=======
-func (pc *ProxyChecker) CheckAll() {
->>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 	pc.mu.RLock()
 	proxies := make([]models.ProxyConfig, len(pc.proxies))
 	copy(proxies, pc.proxies)
@@ -143,7 +136,6 @@ func (pc *ProxyChecker) CheckAll() {
 	var wg sync.WaitGroup
 
 	for _, proxy := range proxies {
-<<<<<<< HEAD
 		if ctx.Err() != nil {
 			break
 		}
@@ -160,13 +152,6 @@ func (pc *ProxyChecker) CheckAll() {
 			if ctx.Err() != nil {
 				return
 			}
-=======
-		wg.Add(1)
-		sem <- struct{}{}
-		go func(p models.ProxyConfig) {
-			defer wg.Done()
-			defer func() { <-sem }()
->>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 			result := pc.checkOne(p)
 			pc.mu.Lock()
 			pc.results[p.StableID] = result
@@ -239,7 +224,6 @@ func (pc *ProxyChecker) checkOne(proxy models.ProxyConfig) CheckResult {
 }
 
 // DetectHostIP fetches the host's public IP by making a direct HTTP GET to the given URL.
-<<<<<<< HEAD
 // Uses a transport with no proxy so that HTTP_PROXY/HTTPS_PROXY env vars do not route
 // the request through a proxy and return the proxy's IP instead of the host's real IP.
 func DetectHostIP(checkURL string, timeout time.Duration) (string, error) {
@@ -247,10 +231,6 @@ func DetectHostIP(checkURL string, timeout time.Duration) (string, error) {
 		Timeout:   timeout,
 		Transport: &http.Transport{},
 	}
-=======
-func DetectHostIP(checkURL string, timeout time.Duration) (string, error) {
-	client := &http.Client{Timeout: timeout}
->>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 	resp, err := client.Get(checkURL)
 	if err != nil {
 		return "", fmt.Errorf("failed to detect host IP: %w", err)

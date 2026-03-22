@@ -11,19 +11,13 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-<<<<<<< HEAD
 	"strconv"
-=======
->>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 	"strings"
 	"time"
 
 	"github.com/apernet/hysteria/core/v2/client"
 	"github.com/apernet/hysteria/extras/v2/obfs"
-<<<<<<< HEAD
 	"github.com/apernet/hysteria/extras/v2/transport/udphop"
-=======
->>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 	"github.com/belaytzev/hysteria-checker/models"
 )
 
@@ -43,7 +37,6 @@ func (f *obfsConnFactory) New(addr net.Addr) (net.PacketConn, error) {
 	return obfs.WrapPacketConn(conn, f.obfuscator), nil
 }
 
-<<<<<<< HEAD
 // portHopConnFactory creates UDP connections for port-hopping servers.
 type portHopConnFactory struct {
 	addr       *udphop.UDPHopAddr
@@ -63,8 +56,6 @@ func (f *portHopConnFactory) New(_ net.Addr) (net.PacketConn, error) {
 	})
 }
 
-=======
->>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 // hysteria2Client wraps client.Client to implement ProxyClient.
 type hysteria2Client struct {
 	c client.Client
@@ -79,16 +70,11 @@ func (h *hysteria2Client) Close() error {
 }
 
 func (c *Hysteria2Connector) Connect(cfg models.ProxyConfig) (ProxyClient, error) {
-<<<<<<< HEAD
 	host, portStr, err := net.SplitHostPort(cfg.Server)
-=======
-	host, _, err := net.SplitHostPort(cfg.Server)
->>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 	if err != nil {
 		return nil, fmt.Errorf("invalid server address %q: %w", cfg.Server, err)
 	}
 
-<<<<<<< HEAD
 	isHopping := !isPlainPort(portStr)
 
 	var serverAddr net.Addr
@@ -104,11 +90,6 @@ func (c *Hysteria2Connector) Connect(cfg models.ProxyConfig) (ProxyClient, error
 			return nil, fmt.Errorf("failed to resolve server address: %w", err)
 		}
 		serverAddr = udpAddr
-=======
-	serverAddr, err := net.ResolveUDPAddr("udp", cfg.Server)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve server address: %w", err)
->>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 	}
 
 	clientCfg := &client.Config{
@@ -150,7 +131,6 @@ func (c *Hysteria2Connector) Connect(cfg models.ProxyConfig) (ProxyClient, error
 	}
 
 	// Salamander obfuscation
-<<<<<<< HEAD
 	var obfuscator obfs.Obfuscator
 	if strings.EqualFold(cfg.Obfs, "salamander") && cfg.ObfsParam != "" {
 		obfuscator, err = obfs.NewSalamanderObfuscator([]byte(cfg.ObfsParam))
@@ -167,13 +147,6 @@ func (c *Hysteria2Connector) Connect(cfg models.ProxyConfig) (ProxyClient, error
 		}
 		clientCfg.ConnFactory = &portHopConnFactory{addr: hopAddr, obfuscator: obfuscator}
 	} else if obfuscator != nil {
-=======
-	if strings.EqualFold(cfg.Obfs, "salamander") && cfg.ObfsParam != "" {
-		obfuscator, err := obfs.NewSalamanderObfuscator([]byte(cfg.ObfsParam))
-		if err != nil {
-			return nil, fmt.Errorf("failed to create salamander obfuscator: %w", err)
-		}
->>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 		clientCfg.ConnFactory = &obfsConnFactory{obfuscator: obfuscator}
 	}
 
@@ -192,12 +165,9 @@ func CheckViaProxy(pc ProxyClient, checkURL string, timeout time.Duration) (aliv
 	if err != nil {
 		return false, 0, "", fmt.Errorf("invalid check URL: %w", err)
 	}
-<<<<<<< HEAD
 	if parsed.Scheme != "http" && parsed.Scheme != "https" {
 		return false, 0, "", fmt.Errorf("unsupported check URL scheme %q: only http and https are supported", parsed.Scheme)
 	}
-=======
->>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 
 	host := parsed.Hostname()
 	port := parsed.Port()
@@ -231,7 +201,6 @@ func CheckViaProxy(pc ProxyClient, checkURL string, timeout time.Duration) (aliv
 		conn = tlsConn
 	}
 
-<<<<<<< HEAD
 	// Build and send HTTP request through the proxied connection
 	req, err := http.NewRequest(http.MethodGet, checkURL, nil)
 	if err != nil {
@@ -240,17 +209,11 @@ func CheckViaProxy(pc ProxyClient, checkURL string, timeout time.Duration) (aliv
 	req.Header.Set("Connection", "close")
 	req.Header.Set("User-Agent", "hysteria-checker/1.0")
 	if err := req.Write(conn); err != nil {
-=======
-	// Build and send raw HTTP request through the proxied connection
-	reqStr := fmt.Sprintf("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\nUser-Agent: hysteria-checker/1.0\r\n\r\n",
-		parsed.RequestURI(), parsed.Host)
-	if _, err := conn.Write([]byte(reqStr)); err != nil {
->>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 		return false, 0, "", fmt.Errorf("write request failed: %w", err)
 	}
 
 	// Read and parse the HTTP response
-	resp, err := http.ReadResponse(bufio.NewReader(conn), req)
+	resp, err := http.ReadResponse(bufio.NewReader(conn), nil)
 	if err != nil {
 		return false, 0, "", fmt.Errorf("read response failed: %w", err)
 	}
@@ -272,15 +235,12 @@ func CheckViaProxy(pc ProxyClient, checkURL string, timeout time.Duration) (aliv
 	return false, latency, bodyStr, fmt.Errorf("HTTP status %d", resp.StatusCode)
 }
 
-<<<<<<< HEAD
 // isPlainPort reports whether s is a plain decimal port number in [0, 65535].
 func isPlainPort(s string) bool {
 	_, err := strconv.ParseUint(s, 10, 16)
 	return err == nil
 }
 
-=======
->>>>>>> f93b1a1 (feat: implement hysteria proxy checker)
 // normalizeCertHash removes colons and hyphens from a certificate hash string
 // and converts it to lowercase.
 func normalizeCertHash(hash string) string {
